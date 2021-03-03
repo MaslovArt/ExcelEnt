@@ -2,9 +2,9 @@
 
 namespace ExcelHelper.Bind.Binders
 {
-    public class BoolColAttribute : BaseColAttribute
+    public class GetBoolColAttribute : BaseColAttribute
     {
-        public BoolColAttribute(int columnIndex, string trueValue)
+        public GetBoolColAttribute(int columnIndex, string trueValue)
             : base(columnIndex)
         {
             TrueValue = trueValue;

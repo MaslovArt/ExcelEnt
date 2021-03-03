@@ -35,7 +35,7 @@ namespace ExcelHelper.Bind
                 {
                     var rowItem = itemSheet.GetRow(row);
                     var cellValue = rowItem.GetCell(rule.Attribute.ColumnIndex);
-                    rule.Attribute.MapProp(rule.PropName, cellValue, newModel);
+                    rule.Attribute.MapProp(rule.Prop, cellValue, newModel);
                 }
                 models.Add(newModel);
             }
@@ -43,11 +43,11 @@ namespace ExcelHelper.Bind
             return models.ToArray();
         }
 
-        private BindProp[] GetRules<T>()
+        private BindProp<BaseColAttribute>[] GetRules<T>()
         {
             return typeof(T)
                 .GetProperties()
-                .Select(p => new BindProp(p.Name, p.GetCustomAttribute(typeof(BaseColAttribute), true) as BaseColAttribute))
+                .Select(p => new BindProp<BaseColAttribute>(p, p.GetCustomAttribute(typeof(BaseColAttribute), true) as BaseColAttribute))
                 .Where(a => a.Attribute != null)
                 .ToArray();
         }

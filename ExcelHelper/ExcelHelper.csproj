@@ -8,8 +8,4 @@
     <PackageReference Include="NPOI" Version="2.5.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Write\Writers\" />
-  </ItemGroup>
-
 </Project>

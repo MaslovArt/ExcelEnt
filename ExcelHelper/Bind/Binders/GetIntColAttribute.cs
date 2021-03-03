@@ -2,9 +2,9 @@
 
 namespace ExcelHelper.Bind.Binders
 {
-    public class IntColAttribute : BaseColAttribute
+    public class GetIntColAttribute : BaseColAttribute
     {
-        public IntColAttribute(int columnIndex)
+        public GetIntColAttribute(int columnIndex)
             : base(columnIndex) { }
 
         protected override object ParseValue(ICell value) => (int)value.NumericCellValue;

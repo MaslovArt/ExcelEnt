@@ -1,25 +1,32 @@
 ﻿using ExcelHelper.Bind.Binders;
+using ExcelHelper.Write;
 
 namespace ExcelBinderTestCore.Models
 {
     public class Car
     {
-        [StringCol(0)]
+        [WriteCol(0)]
+        [GetStringCol(0)]
         public string Brand { get; set; }
 
-        [StringCol(1)]
+        [WriteCol(1)]
+        [GetStringCol(1)]
         public string Model { get; set; }
 
-        [IntCol(2)]
+        [WriteCol(2)]
+        [GetIntCol(2)]
         public int Year { get; set; }
 
-        [IntCol(3)]
+        [WriteCol(3)]
+        [GetIntCol(3)]
         public int HP { get; set; }
 
-        [BoolCol(4, "Yes")]
+        [WriteCol(4)]
+        [GetBoolCol(4, "Yes")]
         public bool Crashed { get; set; }
 
-        [EnumCol(5, typeof(CarClass))]
+        [WriteCol(5)]
+        [GetEnumCol(5, typeof(CarClass))]
         public CarClass Class { get; set; }
 
         public override string ToString()
