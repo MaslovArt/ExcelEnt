@@ -10,7 +10,7 @@ namespace ExcelHelper.Bind.Binders
             TrueValue = trueValue;
         }
 
-        public string TrueValue { get; private set; }
+        public string TrueValue { get; set; }
 
         protected override object ParseValue(ICell value) =>
             value.StringCellValue.ToUpper() == TrueValue.ToUpper();

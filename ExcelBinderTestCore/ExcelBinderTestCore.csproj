@@ -7,10 +7,14 @@
 
   <ItemGroup>
     <None Remove="Documents\Cars.xlsx" />
+    <None Remove="Documents\CarsReport.xlsx" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Documents\Cars.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Documents\CarsReport.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
