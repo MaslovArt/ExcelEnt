@@ -1,5 +1,8 @@
 ﻿using ExcelHelper.Bind.Binders;
+using ExcelHelper.Exceptions;
+using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -33,9 +36,16 @@ namespace ExcelHelper.Bind
                 var newModel = new T();
                 foreach (var rule in mapRules)
                 {
-                    var rowItem = itemSheet.GetRow(row);
-                    var cellValue = rowItem.GetCell(rule.Attribute.ColumnIndex);
-                    rule.Attribute.MapProp(rule.Prop, cellValue, newModel);
+                    try
+                    {
+                        var rowItem = itemSheet.GetRow(row);
+                        var cellValue = rowItem.GetCell(rule.Attribute.ColumnIndex, MissingCellPolicy.RETURN_BLANK_AS_NULL);
+                        rule.Attribute.MapProp(rule, cellValue, newModel);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new ExcelBindException(row, rule.Attribute.ColumnIndex, ex);
+                    }
                 }
                 models.Add(newModel);
             }

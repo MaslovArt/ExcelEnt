@@ -4,9 +4,9 @@ using System.ComponentModel;
 
 namespace ExcelHelper.Bind.Binders
 {
-    public class GetEnumColAttribute : BaseColAttribute
+    public class ReadEnumColAttribute : BaseColAttribute
     {
-        public GetEnumColAttribute(int columnIndex, Type enumType)
+        public ReadEnumColAttribute(int columnIndex, Type enumType)
             : base(columnIndex)
         {
             EnumType = enumType;

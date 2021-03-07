@@ -1,6 +1,5 @@
 ﻿using NPOI.SS.UserModel;
 using System;
-using System.Reflection;
 
 namespace ExcelHelper.Bind.Binders
 {
@@ -16,10 +15,16 @@ namespace ExcelHelper.Bind.Binders
 
         protected abstract object ParseValue(ICell value);
 
-        public void MapProp(PropertyInfo prop, ICell propValue, object obj)
+        public void MapProp(BindProp<BaseColAttribute> bindInfo, ICell propValue, object obj)
         {
-            var value = ParseValue(propValue);
-           prop.SetValue(obj, value);
+            var value = propValue == null 
+                ? null 
+                : ParseValue(propValue);
+
+            if (value == null && !bindInfo.CanBeNull) 
+                throw new Exception($"Set null value to '{bindInfo.Prop.Name}' ({bindInfo.Prop.PropertyType}).");
+
+            bindInfo.Prop.SetValue(obj, value);
         }
     }
 }

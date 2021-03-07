@@ -3,15 +3,19 @@ using System.Reflection;
 
 namespace ExcelHelper
 {
-    internal class BindProp<T> where T : Attribute
+    public class BindProp<T> where T : Attribute
     {
-        internal BindProp(PropertyInfo prop, T attribute)
+        public BindProp(PropertyInfo prop, T attribute)
         {
             Prop = prop;
             Attribute = attribute;
+
+            var type = prop.PropertyType;
+            CanBeNull = !type.IsValueType || (Nullable.GetUnderlyingType(type) != null);
         }
 
-        internal PropertyInfo Prop { get; set; }
-        internal T Attribute { get; set; }
+        public PropertyInfo Prop { get; set; }
+        public T Attribute { get; set; }
+        public bool CanBeNull { get; set; }
     }
 }

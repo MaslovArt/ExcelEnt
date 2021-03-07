@@ -1,6 +1,7 @@
 ﻿using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -40,6 +41,16 @@ namespace ExcelHelper.Write
                     else if (double.TryParse(value.ToString(), out double numValue))
                     {
                         row.CreateCell(rule.Attribute.ColumnIndex).SetCellValue(numValue);
+                    }
+                    else if (value is Enum enumValue)
+                    {
+                        FieldInfo fi = enumValue.GetType().GetField(enumValue.ToString());
+
+                        var attributes = (DescriptionAttribute[])fi.GetCustomAttributes(
+                            typeof(DescriptionAttribute), false);
+
+                        if (attributes != null && attributes.Length > 0)
+                            row.CreateCell(rule.Attribute.ColumnIndex).SetCellValue(attributes[0].Description);
                     }
                     else
                     {
