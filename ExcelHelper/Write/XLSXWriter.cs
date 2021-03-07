@@ -1,73 +1,86 @@
-﻿using NPOI.SS.UserModel;
+﻿using ExcelHelper.Extentions;
+using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
-using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 
 namespace ExcelHelper.Write
 {
-    public class XLSXWriter
+    public class XLSXWriter<T>
     {
-        public void Generate<T>(string fromTemplatePath, string sheetName, string toFile, int toInd, T[] models, bool moveFooter = false)
+        public XSSFWorkbook Workbook { get; private set; }
+        public ISheet Sheet { get; private set; }
+        public string TemplateFilePath { get; private set; }
+        public int InsertInd { get; private set; }
+        public bool MoveFooter { get; private set; }
+
+        public XLSXWriter<T> UseTemplate(string filePath, int page, int insertInd, bool moveFooter)
         {
-            var workbook = new XSSFWorkbook(fromTemplatePath);
-            var sheet = workbook.GetSheet(sheetName);
-            var newRowInd = toInd;
+            TemplateFilePath = filePath;
+            InsertInd = insertInd;
+            MoveFooter = moveFooter;
+            Workbook = new XSSFWorkbook(filePath);
+            Sheet = Workbook.GetSheetAt(page);
 
-            MoveFooterIfNeed(moveFooter, sheet, toInd, models.Length);
+            return this;
+        }
 
-            var rules = GetRules<T>();
+        public XLSXWriter<T> UseModelDescription()
+        {
+            EnsureWorkbook();
+
+            var rules = typeof(T).BindPropsAttrs<WriteColAttribute>();
+            var row = Sheet.CreateRow(InsertInd++);
+
+            foreach (var rule in rules)
+            {
+                var title = rule.Prop.DescriptionAttrValue();
+                row.CreateCell(rule.Attribute.ColumnIndex, CellType.String).SetCellValue(title);
+            }
+
+            return this;
+        }
+
+        public void Generate(string resultFilePath, T[] models)
+        {
+            EnsureWorkbook();
+            MoveFooterIfNeed(MoveFooter, Sheet, InsertInd, models.Length);
+
+            var newRowInd = InsertInd;
+            var rules = typeof(T).BindPropsAttrs<WriteColAttribute>();
 
             foreach (var model in models)
             {
-                var row = sheet.CreateRow(newRowInd++);
+                var row = Sheet.CreateRow(newRowInd++);
                 foreach (var rule in rules)
                 {
                     var value = rule.Prop.GetValue(model);
-                    if (value is string strValue)
-                    {
-                        row.CreateCell(rule.Attribute.ColumnIndex).SetCellValue(strValue);
-                    }
+                    var newCell = row.CreateCell(rule.Attribute.ColumnIndex);
+
+                    if (value == null)
+                        newCell.SetCellValue("");
+                    else if (value is string strValue)
+                        newCell.SetCellValue(strValue);
                     else if (value is DateTime dateValue)
-                    {
-                        row.CreateCell(rule.Attribute.ColumnIndex).SetCellValue(dateValue);
-                    }
+                        newCell.SetCellValue(dateValue);
                     else if (value is bool boolValue)
-                    {
-                        row.CreateCell(rule.Attribute.ColumnIndex).SetCellValue(boolValue);
-                    }
+                        newCell.SetCellValue(boolValue);
                     else if (double.TryParse(value.ToString(), out double numValue))
-                    {
-                        row.CreateCell(rule.Attribute.ColumnIndex).SetCellValue(numValue);
-                    }
+                        newCell.SetCellValue(numValue);
                     else if (value is Enum enumValue)
-                    {
-                        FieldInfo fi = enumValue.GetType().GetField(enumValue.ToString());
-
-                        var attributes = (DescriptionAttribute[])fi.GetCustomAttributes(
-                            typeof(DescriptionAttribute), false);
-
-                        if (attributes != null && attributes.Length > 0)
-                            row.CreateCell(rule.Attribute.ColumnIndex).SetCellValue(attributes[0].Description);
-                    }
+                        newCell.SetCellValue(enumValue.ToDescription());
                     else
-                    {
-                        row.CreateCell(rule.Attribute.ColumnIndex).SetCellValue(value.ToString());
-                    }
+                        newCell.SetCellValue(value.ToString());
                 }
             }
 
-            SaveExcel(workbook, toFile);
+            SaveExcel(resultFilePath);
         }
 
-        private void SaveExcel(XSSFWorkbook workbook, string filePath)
+        private void EnsureWorkbook()
         {
-            using (var file = new FileStream(filePath, FileMode.OpenOrCreate))
-            {
-                workbook.Write(file, true);
-            }
+            Workbook = Workbook ?? new XSSFWorkbook();
+            Sheet = Sheet ?? Workbook.CreateSheet();
         }
 
         private void MoveFooterIfNeed(bool moveFooter, ISheet sheet, int toInd, int len)
@@ -81,13 +94,12 @@ namespace ExcelHelper.Write
             }
         }
 
-        private BindProp<WriteColAttribute>[] GetRules<T>()
+        private void SaveExcel(string resultFilePath)
         {
-            return typeof(T)
-                .GetProperties()
-                .Select(p => new BindProp<WriteColAttribute>(p, p.GetCustomAttribute(typeof(WriteColAttribute), true) as WriteColAttribute))
-                .Where(a => a.Attribute != null)
-                .ToArray();
+            using (var file = new FileStream(resultFilePath, FileMode.CreateNew))
+            {
+                Workbook.Write(file, true);
+            }
         }
     }
 }

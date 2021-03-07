@@ -1,12 +1,11 @@
 ﻿using ExcelHelper.Bind.Binders;
 using ExcelHelper.Exceptions;
+using ExcelHelper.Extentions;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 
 namespace ExcelHelper.Bind
 {
@@ -22,7 +21,7 @@ namespace ExcelHelper.Bind
         {
             if (!file.Exists) throw new FileNotFoundException(file.FullName);
 
-            var mapRules = GetRules<T>();
+            var mapRules = typeof(T).BindPropsAttrs<BaseColAttribute>();
 
             var excelPackage = new XSSFWorkbook(file);
             var models = new List<T>();
@@ -51,15 +50,6 @@ namespace ExcelHelper.Bind
             }
 
             return models.ToArray();
-        }
-
-        private BindProp<BaseColAttribute>[] GetRules<T>()
-        {
-            return typeof(T)
-                .GetProperties()
-                .Select(p => new BindProp<BaseColAttribute>(p, p.GetCustomAttribute(typeof(BaseColAttribute), true) as BaseColAttribute))
-                .Where(a => a.Attribute != null)
-                .ToArray();
         }
     }
 }

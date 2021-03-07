@@ -17,11 +17,16 @@ namespace ExcelBinderTestCore
             Print(excelCars);
 
 
-            //var carsReportTemplate = @"Documents\CarsReport.xlsx";
-            //var carsReportFile = "result.xlsx";
+            var carsReportTemplate = @"Documents\CarsReport.xlsx";
+            var carsReportFile = "result.xlsx";
 
-            //var excelGenerator = new XLSXWriter();
-            //excelGenerator.Generate(carsReportTemplate, "Лист1", carsReportFile, 4, excelCars, true);
+            //new XLSXWriter<Car>()
+            //    .UseModelDescription()
+            //    .Generate(carsReportFile, excelCars);
+
+            new XLSXWriter<Car>()
+                .UseTemplate(carsReportTemplate, 0, 4, true)
+                .Generate(carsReportFile, excelCars);
 
             Console.ReadKey();
         }
