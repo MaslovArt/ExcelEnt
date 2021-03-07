@@ -1,6 +1,7 @@
 ﻿using ExcelBinderTestCore.Models;
 using ExcelHelper.Bind;
 using ExcelHelper.Write;
+using NPOI.SS.UserModel;
 using System;
 using System.Collections.Generic;
 
@@ -27,8 +28,6 @@ namespace ExcelBinderTestCore
             new XLSXWriter<Car>()
                 .UseTemplate(carsReportTemplate, 0, 4, true)
                 .Generate(carsReportFile, excelCars);
-
-            Console.ReadKey();
         }
 
         static void Print(IEnumerable<Car> cars)

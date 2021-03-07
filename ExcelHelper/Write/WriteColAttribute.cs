@@ -11,5 +11,7 @@ namespace ExcelHelper.Write
         }
 
         public int ColumnIndex { get; set; }
+
+        public string StyleName { get; set; }
     }
 }

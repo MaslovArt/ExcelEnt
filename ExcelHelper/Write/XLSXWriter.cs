@@ -2,6 +2,7 @@
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace ExcelHelper.Write
@@ -13,6 +14,13 @@ namespace ExcelHelper.Write
         public string TemplateFilePath { get; private set; }
         public int InsertInd { get; private set; }
         public bool MoveFooter { get; private set; }
+        public Dictionary<string, ICellStyle> Styles { get; private set; }
+
+        public XLSXWriter()
+        {
+            EnsureWorkbook();
+            Styles = new Dictionary<string, ICellStyle>();
+        }
 
         public XLSXWriter<T> UseTemplate(string filePath, int page, int insertInd, bool moveFooter)
         {
@@ -41,9 +49,18 @@ namespace ExcelHelper.Write
             return this;
         }
 
+        public XLSXWriter<T> UseStyles(Func<XSSFWorkbook, Dictionary<string, ICellStyle>> initStyles)
+        {
+            var styles = initStyles(Workbook);
+
+            foreach (var style in styles)
+                Styles.Add(style.Key, style.Value);
+
+            return this;
+        }
+
         public void Generate(string resultFilePath, T[] models)
         {
-            EnsureWorkbook();
             MoveFooterIfNeed(MoveFooter, Sheet, InsertInd, models.Length);
 
             var newRowInd = InsertInd;
@@ -55,7 +72,7 @@ namespace ExcelHelper.Write
                 foreach (var rule in rules)
                 {
                     var value = rule.Prop.GetValue(model);
-                    var newCell = row.CreateCell(rule.Attribute.ColumnIndex);
+                    var newCell = CreateCell(row, rule);
 
                     if (value == null)
                         newCell.SetCellValue("");
@@ -75,6 +92,16 @@ namespace ExcelHelper.Write
             }
 
             SaveExcel(resultFilePath);
+        }
+
+        private ICell CreateCell(IRow row, BindProp<WriteColAttribute> bindProp)
+        {
+            var newCell = row.CreateCell(bindProp.Attribute.ColumnIndex);
+            newCell.CellStyle = !string.IsNullOrEmpty(bindProp.Attribute.StyleName)
+                ? Styles[bindProp.Attribute.StyleName]
+                : null;
+
+            return newCell;
         }
 
         private void EnsureWorkbook()
