@@ -4,25 +4,40 @@ using NPOI.XSSF.UserModel;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
 
 namespace ExcelHelper.Write
 {
     public class XLSXWriter<T>
     {
+        private List<WriteRule> Rules;
+
         public XSSFWorkbook Workbook { get; private set; }
+
         public ISheet Sheet { get; private set; }
+
         public string TemplateFilePath { get; private set; }
+
         public int InsertInd { get; private set; }
+
         public bool MoveFooter { get; private set; }
-        public Dictionary<string, ICellStyle> Styles { get; private set; }
 
         public XLSXWriter()
         {
-            EnsureWorkbook();
-            Styles = new Dictionary<string, ICellStyle>();
+            Workbook = new XSSFWorkbook();
+            Sheet = Workbook.CreateSheet();
+            Rules = new List<WriteRule>();
         }
 
-        public XLSXWriter<T> UseTemplate(string filePath, int page, int insertInd, bool moveFooter)
+        public XLSXWriter<T> AddRule(Expression<Func<T, object>> propName, int colIndex)
+        {
+            var prop = TypeExtentions.GetProperty(propName);
+            Rules.Add(new WriteRule(colIndex, prop));
+
+            return this;
+        }
+
+        public XLSXWriter<T> FromTemplate(string filePath, int page, int insertInd, bool moveFooter)
         {
             TemplateFilePath = filePath;
             InsertInd = insertInd;
@@ -33,46 +48,19 @@ namespace ExcelHelper.Write
             return this;
         }
 
-        public XLSXWriter<T> UseModelDescription()
-        {
-            EnsureWorkbook();
-
-            var rules = typeof(T).BindPropsAttrs<WriteColAttribute>();
-            var row = Sheet.CreateRow(InsertInd++);
-
-            foreach (var rule in rules)
-            {
-                var title = rule.Prop.DescriptionAttrValue();
-                row.CreateCell(rule.Attribute.ColumnIndex, CellType.String).SetCellValue(title);
-            }
-
-            return this;
-        }
-
-        public XLSXWriter<T> UseStyles(Func<XSSFWorkbook, Dictionary<string, ICellStyle>> initStyles)
-        {
-            var styles = initStyles(Workbook);
-
-            foreach (var style in styles)
-                Styles.Add(style.Key, style.Value);
-
-            return this;
-        }
-
         public void Generate(string resultFilePath, T[] models)
         {
             MoveFooterIfNeed(MoveFooter, Sheet, InsertInd, models.Length);
 
             var newRowInd = InsertInd;
-            var rules = typeof(T).BindPropsAttrs<WriteColAttribute>();
 
             foreach (var model in models)
             {
                 var row = Sheet.CreateRow(newRowInd++);
-                foreach (var rule in rules)
+                foreach (var rule in Rules)
                 {
                     var value = rule.Prop.GetValue(model);
-                    var newCell = CreateCell(row, rule);
+                    var newCell = row.CreateCell(rule.ExcelColInd);
 
                     if (value == null)
                         newCell.SetCellValue("");
@@ -92,22 +80,6 @@ namespace ExcelHelper.Write
             }
 
             SaveExcel(resultFilePath);
-        }
-
-        private ICell CreateCell(IRow row, BindProp<WriteColAttribute> bindProp)
-        {
-            var newCell = row.CreateCell(bindProp.Attribute.ColumnIndex);
-            newCell.CellStyle = !string.IsNullOrEmpty(bindProp.Attribute.StyleName)
-                ? Styles[bindProp.Attribute.StyleName]
-                : null;
-
-            return newCell;
-        }
-
-        private void EnsureWorkbook()
-        {
-            Workbook = Workbook ?? new XSSFWorkbook();
-            Sheet = Sheet ?? Workbook.CreateSheet();
         }
 
         private void MoveFooterIfNeed(bool moveFooter, ISheet sheet, int toInd, int len)
