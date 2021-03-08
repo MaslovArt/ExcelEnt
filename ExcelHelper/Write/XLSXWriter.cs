@@ -24,8 +24,7 @@ namespace ExcelHelper.Write
 
         public XLSXWriter()
         {
-            Workbook = new XSSFWorkbook();
-            Sheet = Workbook.CreateSheet();
+            CreateWB();
             Rules = new List<WriteRule>();
         }
 
@@ -44,6 +43,17 @@ namespace ExcelHelper.Write
             MoveFooter = moveFooter;
             Workbook = new XSSFWorkbook(filePath);
             Sheet = Workbook.GetSheetAt(page);
+
+            return this;
+        }
+
+        public XLSXWriter<T> FromEmptyWithHeaders(string[] headers)
+        {
+            CreateWB();
+            var row = Sheet.CreateRow(InsertInd++);
+
+            for (int i = 0; i < headers.Length; i++)
+                row.CreateCell(i).SetCellValue(headers[i]);
 
             return this;
         }
@@ -80,6 +90,12 @@ namespace ExcelHelper.Write
             }
 
             SaveExcel(resultFilePath);
+        }
+
+        private void CreateWB()
+        {
+            Workbook = new XSSFWorkbook();
+            Sheet = Workbook.CreateSheet();
         }
 
         private void MoveFooterIfNeed(bool moveFooter, ISheet sheet, int toInd, int len)
