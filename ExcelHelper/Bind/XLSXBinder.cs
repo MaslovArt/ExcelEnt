@@ -1,55 +1,86 @@
-﻿using ExcelHelper.Bind.Binders;
-using ExcelHelper.Exceptions;
+﻿using ExcelHelper.Exceptions;
 using ExcelHelper.Extentions;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
 
 namespace ExcelHelper.Bind
 {
-    public class XLSXBinder
+    public class XLSXBinder<T> where T : new()
     {
-        public T[] Bind<T>(string filePath, string sheet, int? start = null, int? end = null) where T : new()
+        private List<BindRule> Rules = new List<BindRule>();
+        private int? StartIndex { get; set; }
+        private int? EndIndex { get; set; }
+
+        public XLSXBinder<T> StartFrom(int ind)
         {
-            var file = new FileInfo(filePath);
-            return Bind<T>(file, sheet, start, end);
+            StartIndex = ind;
+            return this;
         }
 
-        public T[] Bind<T>(FileInfo file, string sheet, int? start = null, int? end = null) where T : new()
+        public XLSXBinder<T> EndOn(int ind)
         {
-            if (!file.Exists) throw new FileNotFoundException(file.FullName);
+            EndIndex = ind;
+            return this;
+        }
 
-            var mapRules = typeof(T).BindPropsAttrs<BaseColAttribute>();
+        public XLSXBinder<T> AddRule(int colIndex, Expression<Func<T, object>> propName, Func<ICell, object> map)
+        {
+            var prop = TypeExtentions.GetProperty(propName);
+            Rules.Add(new BindRule(colIndex, prop, map));
+
+            return this;
+        } 
+
+        public T[] Bind(string filePath, int pageInd)
+        {
+            var file = new FileInfo(filePath);
+            return Bind(file, pageInd);
+        }
+
+        public T[] Bind(FileInfo file, int pageInd)
+        {
+            CheckFile(file);
 
             var excelPackage = new XSSFWorkbook(file);
+            var itemSheet = excelPackage.GetSheetAt(pageInd);
+
+            var fromRow = StartIndex ?? 0;
+            var toRow = EndIndex ?? itemSheet.LastRowNum;
+
             var models = new List<T>();
-            var itemSheet = excelPackage.GetSheet(sheet);
 
-            var fromRow = start ?? 0;
-            var toRow = end ?? itemSheet.LastRowNum;
-
-            for (int row = fromRow; row <= toRow; row++)
+            for (int rowInd = fromRow; rowInd <= toRow; rowInd++)
             {
                 var newModel = new T();
-                foreach (var rule in mapRules)
+                foreach (var rule in Rules)
                 {
                     try
                     {
-                        var rowItem = itemSheet.GetRow(row);
-                        var cellValue = rowItem.GetCell(rule.Attribute.ColumnIndex, MissingCellPolicy.RETURN_BLANK_AS_NULL);
-                        rule.Attribute.MapProp(rule, cellValue, newModel);
+                        var row = itemSheet.GetRow(rowInd);
+                        var cell = row.GetCell(rule.ExcelColInd);
+                        var mappedValue = rule.Map(cell);
+
+                        rule.Prop.SetValue(newModel, mappedValue);
                     }
                     catch (Exception ex)
                     {
-                        throw new ExcelBindException(row, rule.Attribute.ColumnIndex, ex);
+                        throw new ExcelBindException(rowInd, rule.ExcelColInd, ex);
                     }
                 }
                 models.Add(newModel);
             }
 
             return models.ToArray();
+        }
+
+        private void CheckFile(FileInfo file)
+        {
+            if (!file.Exists) 
+                throw new FileNotFoundException(file.FullName);
         }
     }
 }

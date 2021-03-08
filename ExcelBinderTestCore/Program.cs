@@ -13,8 +13,16 @@ namespace ExcelBinderTestCore
         {
             var carsFile = @"Documents\Cars.xlsx";
 
-            var excelBinder = new XLSXBinder();
-            var excelCars = excelBinder.Bind<Car>(carsFile, "Лист1", 1);
+            var excelCars = new XLSXBinder<Car>()
+                .AddRule(0, m => m.Brand, BindMappers.String)
+                .AddRule(1, m => m.Model, BindMappers.String)
+                .AddRule(2, m => m.Year, BindMappers.NullInt)
+                .AddRule(3, m => m.HP, BindMappers.NullInt)
+                .AddRule(4, m => m.Crashed, (cell) => BindMappers.StringBool(cell, "Yes"))
+                .AddRule(5, m => m.Class, BindMappers.Enum<CarClass>)
+                .StartFrom(1)
+                .Bind(carsFile, 0);
+
             Print(excelCars);
 
 
@@ -25,9 +33,9 @@ namespace ExcelBinderTestCore
             //    .UseModelDescription()
             //    .Generate(carsReportFile, excelCars);
 
-            new XLSXWriter<Car>()
-                .UseTemplate(carsReportTemplate, 0, 4, true)
-                .Generate(carsReportFile, excelCars);
+            //new XLSXWriter<Car>()
+            //    .UseTemplate(carsReportTemplate, 0, 4, true)
+            //    .Generate(carsReportFile, excelCars);
         }
 
         static void Print(IEnumerable<Car> cars)

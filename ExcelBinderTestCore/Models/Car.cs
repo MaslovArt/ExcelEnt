@@ -17,25 +17,17 @@ namespace ExcelBinderTestCore.Models
         public string Model { get; set; }
 
         [Description("Year")]
-        [WriteCol(2)]
-        [ReadIntCol(2)]
         public int? Year { get; set; }
 
         [Description("HP")]
-        [WriteCol(3)]
-        [ReadIntCol(3)]
         public int? HP { get; set; }
 
-        [ReadBoolCol(4, TrueValue = "Yes")]
         public bool Crashed { get; set; }
 
         [Description("Crashed")]
-        [WriteCol(4)]
         public string CrashedStr => Crashed ? "Yes" : "No";
 
         [Description("Class")]
-        [WriteCol(5)]
-        [ReadEnumCol(5, typeof(CarClass))]
         public CarClass Class { get; set; }
 
         public override string ToString()

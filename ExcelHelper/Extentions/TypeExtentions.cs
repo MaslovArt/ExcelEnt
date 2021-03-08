@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace ExcelHelper.Extentions
@@ -25,6 +26,24 @@ namespace ExcelHelper.Extentions
                 return attributes[0].Description;
 
             return null;
+        }
+
+        internal static PropertyInfo GetProperty<T>(Expression<Func<T, object>> property)
+        {
+            LambdaExpression lambda = (LambdaExpression)property;
+            MemberExpression memberExpression;
+
+            if (lambda.Body is UnaryExpression)
+            {
+                UnaryExpression unaryExpression = (UnaryExpression)(lambda.Body);
+                memberExpression = (MemberExpression)(unaryExpression.Operand);
+            }
+            else
+            {
+                memberExpression = (MemberExpression)(lambda.Body);
+            }
+
+            return (PropertyInfo)memberExpression.Member;
         }
     }
 }
