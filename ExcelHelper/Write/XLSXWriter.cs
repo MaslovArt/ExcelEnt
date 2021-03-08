@@ -10,39 +10,37 @@ namespace ExcelHelper.Write
 {
     public class XLSXWriter<T>
     {
-        private List<WriteRule> Rules;
-
-        public XSSFWorkbook Workbook { get; private set; }
-
-        public ISheet Sheet { get; private set; }
-
-        public string TemplateFilePath { get; private set; }
-
-        public int InsertInd { get; private set; }
-
-        public bool MoveFooter { get; private set; }
+        private List<WriteRule> _rules;
+        private XSSFWorkbook _workbook;
+        private ISheet _sheet;
+        private int _insertInd;
+        private bool _moveFooter;
+        private Dictionary<string, ICellStyle> _styles;
 
         public XLSXWriter()
         {
             CreateWB();
-            Rules = new List<WriteRule>();
+            _rules = new List<WriteRule>();
+            _styles = new Dictionary<string, ICellStyle>();
         }
 
-        public XLSXWriter<T> AddRule(Expression<Func<T, object>> propName, int colIndex)
+        public XLSXWriter<T> AddRule(
+            Expression<Func<T, object>> propName,
+            int colIndex,
+            string styleName = null)
         {
             var prop = TypeExtentions.GetProperty(propName);
-            Rules.Add(new WriteRule(colIndex, prop));
+            _rules.Add(new WriteRule(colIndex, prop, styleName));
 
             return this;
         }
 
         public XLSXWriter<T> FromTemplate(string filePath, int page, int insertInd, bool moveFooter)
         {
-            TemplateFilePath = filePath;
-            InsertInd = insertInd;
-            MoveFooter = moveFooter;
-            Workbook = new XSSFWorkbook(filePath);
-            Sheet = Workbook.GetSheetAt(page);
+            _insertInd = insertInd;
+            _moveFooter = moveFooter;
+            _workbook = new XSSFWorkbook(filePath);
+            _sheet = _workbook.GetSheetAt(page);
 
             return this;
         }
@@ -50,7 +48,7 @@ namespace ExcelHelper.Write
         public XLSXWriter<T> FromEmptyWithHeaders(string[] headers)
         {
             CreateWB();
-            var row = Sheet.CreateRow(InsertInd++);
+            var row = _sheet.CreateRow(_insertInd++);
 
             for (int i = 0; i < headers.Length; i++)
                 row.CreateCell(i).SetCellValue(headers[i]);
@@ -58,19 +56,29 @@ namespace ExcelHelper.Write
             return this;
         }
 
+        public XLSXWriter<T> AddStyle(Action<ICellStyle> styling, string styleName)
+        {
+            var newStyle = _workbook.CreateCellStyle();
+            styling(newStyle);
+
+            _styles.Add(styleName, newStyle);
+
+            return this;
+        }
+
         public void Generate(string resultFilePath, T[] models)
         {
-            MoveFooterIfNeed(MoveFooter, Sheet, InsertInd, models.Length);
+            MoveFooterIfNeed(_moveFooter, _sheet, _insertInd, models.Length);
 
-            var newRowInd = InsertInd;
+            var newRowInd = _insertInd;
 
             foreach (var model in models)
             {
-                var row = Sheet.CreateRow(newRowInd++);
-                foreach (var rule in Rules)
+                var row = _sheet.CreateRow(newRowInd++);
+                foreach (var rule in _rules)
                 {
                     var value = rule.Prop.GetValue(model);
-                    var newCell = row.CreateCell(rule.ExcelColInd);
+                    var newCell = CreateCell(row, rule.ExcelColInd, rule.StyleName);
 
                     if (value == null)
                         newCell.SetCellValue("");
@@ -92,10 +100,21 @@ namespace ExcelHelper.Write
             SaveExcel(resultFilePath);
         }
 
+
+        private ICell CreateCell(IRow row, int cellInd, string cellStyleName)
+        {
+            var newCell = row.CreateCell(cellInd);
+
+            if (!string.IsNullOrEmpty(cellStyleName))
+                newCell.CellStyle = _styles[cellStyleName];
+
+            return newCell;
+        }
+
         private void CreateWB()
         {
-            Workbook = new XSSFWorkbook();
-            Sheet = Workbook.CreateSheet();
+            _workbook = new XSSFWorkbook();
+            _sheet = _workbook.CreateSheet();
         }
 
         private void MoveFooterIfNeed(bool moveFooter, ISheet sheet, int toInd, int len)
@@ -113,7 +132,7 @@ namespace ExcelHelper.Write
         {
             using (var file = new FileStream(resultFilePath, FileMode.CreateNew))
             {
-                Workbook.Write(file, true);
+                _workbook.Write(file, true);
             }
         }
     }

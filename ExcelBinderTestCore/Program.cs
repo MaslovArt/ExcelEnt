@@ -18,8 +18,8 @@ namespace ExcelBinderTestCore
             var excelCars = carsBinder.Bind(carsFile, 0);
             Print(excelCars);
 
-            var carsReportGenerator = new CarsReportGenerator();
-            carsReportGenerator.Generate(carsReportFile, excelCars);
+            //var carsReportGenerator = new CarsReportGenerator();
+            //carsReportGenerator.Generate(carsReportFile, excelCars);
 
             var carsListGenerator = new CarsListGenerator();
             carsListGenerator.Generate(carsListFile, excelCars);
