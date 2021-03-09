@@ -9,31 +9,25 @@ using System.Linq.Expressions;
 
 namespace ExcelHelper.Write
 {
-    public class XLSXWriter<T>
+    public class XLSXWriter<T> : IXLSXWriter<T>
     {
-        private List<WriteRule> _rules;
-        private XSSFWorkbook _workbook;
-        private ISheet _sheet;
-        private int _insertInd;
-        private bool _moveFooter;
+        internal List<WriteRule> _rules;
+        internal XSSFWorkbook _workbook;
+        internal ISheet _sheet;
 
-        private Dictionary<string, ICellStyle> _styles;
-        private Dictionary<string, string> _shortcodes;
-        private List<Func<T, string>> _conditionStyles;
+        internal XLSXStyling<T> _styling;
+        internal XLSXTemplating<T> _templating;
 
         public XLSXWriter()
         {
-            CreateWB();
+            _workbook = new XSSFWorkbook();
+            _sheet = _workbook.CreateSheet();
+
             _rules = new List<WriteRule>();
-            _styles = new Dictionary<string, ICellStyle>();
-            _shortcodes = new Dictionary<string, string>();
-            _conditionStyles = new List<Func<T, string>>();
+            _styling = new XLSXStyling<T>(_workbook, _sheet);
         }
 
-        public XLSXWriter<T> AddRule(
-            Expression<Func<T, object>> propName,
-            int colIndex,
-            string styleName = null)
+        public IXLSXWriter<T> AddRule(Expression<Func<T, object>> propName, int colIndex, string styleName = null)
         {
             var prop = TypeExtentions.GetProperty(propName);
             _rules.Add(new WriteRule(colIndex, prop, styleName));
@@ -41,66 +35,45 @@ namespace ExcelHelper.Write
             return this;
         }
 
-        public XLSXWriter<T> FromTemplate(
-            string filePath, 
-            int page, 
-            int insertInd, 
-            bool moveFooter)
+        public IXLSXTemplating<T> FromTemplate(string filePath, int page, int insertInd, bool moveFooter)
         {
-            _insertInd = insertInd;
-            _moveFooter = moveFooter;
-            _workbook = new XSSFWorkbook(filePath);
-            _sheet = _workbook.GetSheetAt(page);
+            _templating = new XLSXTemplating<T>(this);
+            _templating.FromTemplate(filePath, page, insertInd, moveFooter);
+
+            _styling = new XLSXStyling<T>(_workbook, _sheet);
+
+            return _templating;
+        }
+
+        public IXLSXTemplating<T> FromEmptyWithHeaders(string[] headers, string styleName = null)
+        {
+            _templating = new XLSXTemplating<T>(this);
+            _templating.FromEmptyWithHeaders(headers, styleName);
+
+            _styling = new XLSXStyling<T>(_workbook, _sheet);
+
+            return _templating;
+        }
+
+        public IXLSXWriter<T> AddStyle(Action<ICellStyle> styling, string styleName)
+        {
+            _styling.AddStyle(styling, styleName);
 
             return this;
         }
 
-        public XLSXWriter<T> ReplaceShortCode(string shortCode, string value)
+        public IXLSXWriter<T> AddConditionRowStyle(Func<T, string> styleName)
         {
-            _shortcodes.Add(shortCode, value);
-
-            return this;
-        }
-
-        public XLSXWriter<T> FromEmptyWithHeaders(string[] headers, string styleName = null)
-        {
-            CreateWB();
-            var row = _sheet.CreateRow(_insertInd++);
-            var style = !string.IsNullOrEmpty(styleName) ? _styles[styleName] : null;
-
-            for (int i = 0; i < headers.Length; i++)
-            {
-                var cell = row.CreateCell(i);
-                cell.SetCellValue(headers[i]);
-                cell.CellStyle = style;
-            }
-
-            return this;
-        }
-
-        public XLSXWriter<T> AddStyle(Action<ICellStyle> styling, string styleName)
-        {
-            var newStyle = _workbook.CreateCellStyle();
-            styling(newStyle);
-
-            _styles.Add(styleName, newStyle);
-
-            return this;
-        }
-
-        public XLSXWriter<T> AddConditionRowStyle(Func<T, string> styleName)
-        {
-            _conditionStyles.Add(styleName);
+            _styling.AddConditionRowStyle(styleName);
 
             return this;
         }
 
         public void Generate(string resultFilePath, T[] models)
         {
-            ApplyReplaceShortCodes();
-            MoveFooterIfNeed(_moveFooter, _sheet, _insertInd, models.Length);
+            _templating?.MoveFooterIfNeed(models.Length);
 
-            var newRowInd = _insertInd;
+            var newRowInd = _templating?.InsertInd ?? 0;
             var minColIndex = _rules.Select(r => r.ExcelColInd).Min();
             var maxColIndex = _rules.Select(r => r.ExcelColInd).Max();
 
@@ -132,86 +105,18 @@ namespace ExcelHelper.Write
                 }
             }
 
-            ApplyConditionRowStyles(models);
+            _styling.ApplyConditionRowStyles(models, _templating.InsertInd);
+
             SaveExcel(resultFilePath);
         }
 
 
-        private void ApplyConditionRowStyles(T[] models)
-        {
-            if (_conditionStyles.Count == 0) return;
-
-            var indexes = _rules.Select(r => r.ExcelColInd);
-            var startCellInd = indexes.Min();
-            var endCellInd = indexes.Max();
-
-            for (int i = 0; i < models.Length; i++)
-            {
-                foreach (var cond in _conditionStyles)
-                {
-                    var styleName = cond(models[i]);
-                    if (!string.IsNullOrEmpty(styleName))
-                    {
-                        var row = _sheet.GetRow(i + _insertInd);
-                        var style = _styles[styleName];
-                        for (int j = startCellInd; j <= endCellInd; j++)
-                            row.GetCell(j).CellStyle = style;
-                    }
-                }
-            }
-        }
-
-        private void ApplyReplaceShortCodes()
-        {
-            if (_shortcodes.Count == 0) return;
-
-            foreach (IRow row in _sheet)
-            {
-                foreach (ICell cell in row)
-                {
-                    if (cell != null)
-                    {
-                        foreach (var shortcode in _shortcodes)
-                        {
-                            var shortcodeKey = $"[[[{shortcode.Key}]]]";
-                            if (cell.ToString().Contains(shortcodeKey))
-                            {
-                                var newValue = cell.ToString()
-                                    .Replace(shortcodeKey, shortcode.Value);
-                                cell.SetCellValue(newValue);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         private ICell GetCell(IRow row, WriteRule rule)
         {
             var newCell = row.GetCell(rule.ExcelColInd);
-
-            if (!string.IsNullOrEmpty(rule.StyleName))
-                newCell.CellStyle = _styles[rule.StyleName];
+            newCell.CellStyle = _styling.GetStyle(rule.StyleName);
 
             return newCell;
-        }
-
-        private void CreateWB()
-        {
-            _workbook = new XSSFWorkbook();
-            _sheet = _workbook.CreateSheet();
-        }
-
-        private void MoveFooterIfNeed(bool moveFooter, ISheet sheet, int toInd, int len)
-        {
-            if (moveFooter && sheet.LastRowNum > toInd)
-            {
-                var afterHeaderRow = toInd + 1;
-                var templateLastRow = sheet.LastRowNum;
-
-                sheet.ShiftRows(afterHeaderRow, templateLastRow, len);
-            }
         }
 
         private void SaveExcel(string resultFilePath)

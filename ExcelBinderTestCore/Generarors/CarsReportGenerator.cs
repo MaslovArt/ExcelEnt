@@ -1,14 +1,14 @@
 ﻿using ExcelBinderTestCore.Models;
 using ExcelHelper.Write;
-using System;
+using NPOI.SS.UserModel;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace ExcelBinderTestCore.Generarors
 {
     public class CarsReportGenerator
     {
+        private string RedBGStyle = "red-bg";
         private string templatePath = @"Documents\CarsReport.xlsx";
         private int templatePage = 0;
         private int insertInd = 4;
@@ -29,7 +29,15 @@ namespace ExcelBinderTestCore.Generarors
                 .AddRule(c => c.HP, 3)
                 .AddRule(c => c.Crashed, 4)
                 .AddRule(c => c.Class, 5)
+                .AddStyle(CreateRedStyle, RedBGStyle)
+                .AddConditionRowStyle(car => car.Crashed ? RedBGStyle : null)
                 .Generate(newFile, carsArray);
+        }
+
+        private void CreateRedStyle(ICellStyle style)
+        {
+            style.FillForegroundColor = IndexedColors.Red.Index;
+            style.FillPattern = FillPattern.SolidForeground;
         }
     }
 }
