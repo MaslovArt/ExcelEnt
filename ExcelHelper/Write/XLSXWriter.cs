@@ -4,6 +4,7 @@ using NPOI.XSSF.UserModel;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace ExcelHelper.Write
@@ -15,13 +16,16 @@ namespace ExcelHelper.Write
         private ISheet _sheet;
         private int _insertInd;
         private bool _moveFooter;
+
         private Dictionary<string, ICellStyle> _styles;
+        private List<Func<T, string>> _conditionStyles;
 
         public XLSXWriter()
         {
             CreateWB();
             _rules = new List<WriteRule>();
             _styles = new Dictionary<string, ICellStyle>();
+            _conditionStyles = new List<Func<T, string>>();
         }
 
         public XLSXWriter<T> AddRule(
@@ -35,7 +39,11 @@ namespace ExcelHelper.Write
             return this;
         }
 
-        public XLSXWriter<T> FromTemplate(string filePath, int page, int insertInd, bool moveFooter)
+        public XLSXWriter<T> FromTemplate(
+            string filePath, 
+            int page, 
+            int insertInd, 
+            bool moveFooter)
         {
             _insertInd = insertInd;
             _moveFooter = moveFooter;
@@ -66,19 +74,31 @@ namespace ExcelHelper.Write
             return this;
         }
 
+        public XLSXWriter<T> AddConditionRowStyle(Func<T, string> styleName)
+        {
+            _conditionStyles.Add(styleName);
+
+            return this;
+        }
+
         public void Generate(string resultFilePath, T[] models)
         {
             MoveFooterIfNeed(_moveFooter, _sheet, _insertInd, models.Length);
 
             var newRowInd = _insertInd;
+            var minColIndex = _rules.Select(r => r.ExcelColInd).Min();
+            var maxColIndex = _rules.Select(r => r.ExcelColInd).Max();
 
             foreach (var model in models)
             {
                 var row = _sheet.CreateRow(newRowInd++);
+                for (var colInd = minColIndex; colInd <= maxColIndex; colInd++)
+                    row.CreateCell(colInd);
+
                 foreach (var rule in _rules)
                 {
                     var value = rule.Prop.GetValue(model);
-                    var newCell = CreateCell(row, rule.ExcelColInd, rule.StyleName);
+                    var newCell = GetCell(row, rule);
 
                     if (value == null)
                         newCell.SetCellValue("");
@@ -97,16 +117,41 @@ namespace ExcelHelper.Write
                 }
             }
 
+            ApplyConditionStyles(models);
             SaveExcel(resultFilePath);
         }
 
 
-        private ICell CreateCell(IRow row, int cellInd, string cellStyleName)
+        private void ApplyConditionStyles(T[] models)
         {
-            var newCell = row.CreateCell(cellInd);
+            if (_conditionStyles.Count == 0) return;
 
-            if (!string.IsNullOrEmpty(cellStyleName))
-                newCell.CellStyle = _styles[cellStyleName];
+            var indexes = _rules.Select(r => r.ExcelColInd);
+            var startCellInd = indexes.Min();
+            var endCellInd = indexes.Max();
+
+            for (int i = 0; i < models.Length; i++)
+            {
+                foreach (var cond in _conditionStyles)
+                {
+                    var styleName = cond(models[i]);
+                    if (!string.IsNullOrEmpty(styleName))
+                    {
+                        var row = _sheet.GetRow(i + _insertInd);
+                        var style = _styles[styleName];
+                        for (int j = startCellInd; j <= endCellInd; j++)
+                            row.GetCell(j).CellStyle = style;
+                    }
+                }
+            }
+        }
+
+        private ICell GetCell(IRow row, WriteRule rule)
+        {
+            var newCell = row.GetCell(rule.ExcelColInd);
+
+            if (!string.IsNullOrEmpty(rule.StyleName))
+                newCell.CellStyle = _styles[rule.StyleName];
 
             return newCell;
         }
