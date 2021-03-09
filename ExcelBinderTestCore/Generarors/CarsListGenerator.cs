@@ -22,7 +22,7 @@ namespace ExcelBinderTestCore.Generarors
                 .AddRule(c => c.Crashed, 4)
                 .AddRule(c => c.Class, 6)
                 .AddStyle(CreateRedBGStyle, RED_BG_STYLE)
-                .AddStyle(CreateGrayGStyle, GRAY_BG_STYLE)
+                .AddStyle(CreateGrayStyle, GRAY_BG_STYLE)
                 .AddConditionRowStyle(car => car.Crashed ? RED_BG_STYLE : null)
                 .Generate(newFile, cars.ToArray());
         }
@@ -33,7 +33,7 @@ namespace ExcelBinderTestCore.Generarors
             style.FillPattern = FillPattern.SolidForeground;
         }
 
-        private void CreateGrayGStyle(ICellStyle style)
+        private void CreateGrayStyle(ICellStyle style)
         {
             style.FillForegroundColor = IndexedColors.Grey25Percent.Index;
             style.FillPattern = FillPattern.SolidForeground;

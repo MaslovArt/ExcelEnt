@@ -18,6 +18,7 @@ namespace ExcelHelper.Write
         private bool _moveFooter;
 
         private Dictionary<string, ICellStyle> _styles;
+        private Dictionary<string, string> _shortcodes;
         private List<Func<T, string>> _conditionStyles;
 
         public XLSXWriter()
@@ -25,6 +26,7 @@ namespace ExcelHelper.Write
             CreateWB();
             _rules = new List<WriteRule>();
             _styles = new Dictionary<string, ICellStyle>();
+            _shortcodes = new Dictionary<string, string>();
             _conditionStyles = new List<Func<T, string>>();
         }
 
@@ -53,13 +55,25 @@ namespace ExcelHelper.Write
             return this;
         }
 
-        public XLSXWriter<T> FromEmptyWithHeaders(string[] headers)
+        public XLSXWriter<T> ReplaceShortCode(string shortCode, string value)
+        {
+            _shortcodes.Add(shortCode, value);
+
+            return this;
+        }
+
+        public XLSXWriter<T> FromEmptyWithHeaders(string[] headers, string styleName = null)
         {
             CreateWB();
             var row = _sheet.CreateRow(_insertInd++);
+            var style = !string.IsNullOrEmpty(styleName) ? _styles[styleName] : null;
 
             for (int i = 0; i < headers.Length; i++)
-                row.CreateCell(i).SetCellValue(headers[i]);
+            {
+                var cell = row.CreateCell(i);
+                cell.SetCellValue(headers[i]);
+                cell.CellStyle = style;
+            }
 
             return this;
         }
@@ -83,6 +97,7 @@ namespace ExcelHelper.Write
 
         public void Generate(string resultFilePath, T[] models)
         {
+            ApplyReplaceShortCodes();
             MoveFooterIfNeed(_moveFooter, _sheet, _insertInd, models.Length);
 
             var newRowInd = _insertInd;
@@ -117,12 +132,12 @@ namespace ExcelHelper.Write
                 }
             }
 
-            ApplyConditionStyles(models);
+            ApplyConditionRowStyles(models);
             SaveExcel(resultFilePath);
         }
 
 
-        private void ApplyConditionStyles(T[] models)
+        private void ApplyConditionRowStyles(T[] models)
         {
             if (_conditionStyles.Count == 0) return;
 
@@ -141,6 +156,32 @@ namespace ExcelHelper.Write
                         var style = _styles[styleName];
                         for (int j = startCellInd; j <= endCellInd; j++)
                             row.GetCell(j).CellStyle = style;
+                    }
+                }
+            }
+        }
+
+        private void ApplyReplaceShortCodes()
+        {
+            if (_shortcodes.Count == 0) return;
+
+            foreach (IRow row in _sheet)
+            {
+                foreach (ICell cell in row)
+                {
+                    if (cell != null)
+                    {
+                        foreach (var shortcode in _shortcodes)
+                        {
+                            var shortcodeKey = $"[[[{shortcode.Key}]]]";
+                            if (cell.ToString().Contains(shortcodeKey))
+                            {
+                                var newValue = cell.ToString()
+                                    .Replace(shortcodeKey, shortcode.Value);
+                                cell.SetCellValue(newValue);
+                                break;
+                            }
+                        }
                     }
                 }
             }
