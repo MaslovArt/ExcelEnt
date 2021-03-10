@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ExcelHelper.Exceptions
+namespace ExcelEnt.Exceptions
 {
     internal class ExcelBindException : Exception
     {

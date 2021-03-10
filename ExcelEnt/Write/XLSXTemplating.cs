@@ -3,7 +3,7 @@ using NPOI.XSSF.UserModel;
 using System;
 using System.Linq.Expressions;
 
-namespace ExcelHelper.Write
+namespace ExcelEnt.Write
 {
     /// <summary>
     /// Excel templating

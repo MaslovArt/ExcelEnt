@@ -1,8 +1,8 @@
-﻿using ExcelHelper.Extentions;
+﻿using ExcelEnt.Extentions;
 using NPOI.SS.UserModel;
 using System;
 
-namespace ExcelHelper.Bind
+namespace ExcelEnt.Bind
 {
     /// <summary>
     /// Excel cell value to property value mappers

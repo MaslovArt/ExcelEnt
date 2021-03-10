@@ -2,7 +2,7 @@
 using System;
 using System.Reflection;
 
-namespace ExcelHelper.Bind
+namespace ExcelEnt.Bind
 {
     /// <summary>
     /// Excel to entity map rule

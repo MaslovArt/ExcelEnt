@@ -1,4 +1,4 @@
-﻿using ExcelHelper.Extentions;
+﻿using ExcelEnt.Extentions;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace ExcelHelper.Write
+namespace ExcelEnt.Write
 {
     /// <summary>
     /// Entities to excel writer

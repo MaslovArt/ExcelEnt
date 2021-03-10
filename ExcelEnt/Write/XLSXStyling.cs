@@ -3,7 +3,7 @@ using NPOI.XSSF.UserModel;
 using System;
 using System.Collections.Generic;
 
-namespace ExcelHelper.Write
+namespace ExcelEnt.Write
 {
     /// <summary>
     /// Excel styling

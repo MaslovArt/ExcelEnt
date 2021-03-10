@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Reflection;
 
-namespace ExcelHelper.Extentions
+namespace ExcelEnt.Extentions
 {
     internal static class EnumExtentions
     {

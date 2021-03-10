@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace ExcelHelper.Extentions
+namespace ExcelEnt.Extentions
 {
     internal static class TypeExtentions
     {

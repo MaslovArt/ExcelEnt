@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace ExcelHelper.Write
+namespace ExcelEnt.Write
 {
     /// <summary>
     /// Entity to excel write rule

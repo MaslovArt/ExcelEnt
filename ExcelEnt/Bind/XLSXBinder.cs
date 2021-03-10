@@ -1,5 +1,5 @@
-﻿using ExcelHelper.Exceptions;
-using ExcelHelper.Extentions;
+﻿using ExcelEnt.Exceptions;
+using ExcelEnt.Extentions;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 
-namespace ExcelHelper.Bind
+namespace ExcelEnt.Bind
 {
     /// <summary>
     /// Excel sheet to entity binder

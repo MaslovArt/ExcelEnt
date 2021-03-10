@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ExcelHelper\ExcelHelper.csproj" />
+    <ProjectReference Include="..\ExcelEnt\ExcelEnt.csproj" />
   </ItemGroup>
 
 </Project>

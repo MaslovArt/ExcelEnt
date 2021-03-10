@@ -1,4 +1,4 @@
-﻿namespace ExcelHelper.Write
+﻿namespace ExcelEnt.Write
 {
     public interface IXLSXTemplating<T> : IXLSXWriter<T>
     {

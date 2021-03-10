@@ -1,5 +1,5 @@
 ﻿using ExcelBinderTestCore.Models;
-using ExcelHelper.Bind;
+using ExcelEnt.Bind;
 
 namespace ExcelBinderTestCore.Readers
 {
