@@ -13,14 +13,14 @@ namespace ExcelEnt.Write
     /// Entities to excel writer
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class XLSXWriter<T> : IXLSXWriter<T>
+    public class XLSXWriter<T>
     {
-        internal List<WriteRule> _rules;
-        internal XSSFWorkbook _workbook;
-        internal ISheet _sheet;
+        internal List<WriteRule>    _rules;
+        internal XSSFWorkbook       _workbook;
+        internal ISheet             _sheet;
 
-        internal XLSXStyling<T> _styling;
-        internal XLSXTemplating<T> _templating;
+        internal XLSXStyling<T>     _styling;
+        internal XLSXTemplating<T>  _templating;
 
         public XLSXWriter()
         {
@@ -28,12 +28,13 @@ namespace ExcelEnt.Write
             _sheet = _workbook.CreateSheet();
 
             _rules = new List<WriteRule>();
+            _templating = new XLSXTemplating<T>();
             _styling = new XLSXStyling<T>(_workbook, _sheet);
         }
 
-        private int InsertIndex => _templating?.InsertInd ?? 0;
+        private int InsertIndex => _templating.InsertInd;
 
-        public IXLSXWriter<T> AddRule(Expression<Func<T, object>> propName, int colIndex, string styleName = null)
+        public XLSXWriter<T> AddRule(Expression<Func<T, object>> propName, int colIndex, string styleName = null)
         {
             var prop = TypeExtentions.GetProperty(propName);
             _rules.Add(new WriteRule(colIndex, prop, styleName));
@@ -41,56 +42,59 @@ namespace ExcelEnt.Write
             return this;
         }
 
-        public IXLSXTemplating<T> FromTemplate(string filePath, int page, int insertInd, bool moveFooter)
+        public XLSXWriter<T> FromTemplate(string filePath, int page, int insertInd, bool moveFooter)
         {
-            _templating = new XLSXTemplating<T>(this);
-            _templating.FromTemplate(filePath, page, insertInd, moveFooter);
-
+            _workbook = _templating.FromTemplate(filePath, insertInd, moveFooter);
+            _sheet = _workbook.GetSheetAt(page);
             _styling = new XLSXStyling<T>(_workbook, _sheet);
 
-            return _templating;
+            return this;
         }
 
-        public IXLSXTemplating<T> FromEmptyWithHeaders(string[] headers, string styleName = null)
+        public XLSXWriter<T> FromEmptyWithHeaders(string[] headers, string styleName = null)
         {
-            _templating = new XLSXTemplating<T>(this);
-            _templating.FromEmptyWithHeaders(headers, styleName);
+            _templating.FromEmptyWithHeaders(_workbook, headers);
 
-            _styling = new XLSXStyling<T>(_workbook, _sheet);
-
-            return _templating;
+            return this;
         }
 
-        public IXLSXWriter<T> AddStyle(Action<ICellStyle> styling, string styleName)
+        public XLSXWriter<T> ReplaceShortCode(string shortcode, string value)
+        {
+            _templating.ReplaceShortCode(_sheet, shortcode, value);
+
+            return this;
+        }
+
+        public XLSXWriter<T> AddStyle(Action<ICellStyle> styling, string styleName)
         {
             _styling.AddStyle(styling, styleName);
 
             return this;
         }
 
-        public IXLSXWriter<T> AddConditionRowStyle(Func<T, string> styleName)
+        public XLSXWriter<T> AddConditionRowStyle(Func<T, string> styleName)
         {
             _styling.AddConditionRowStyle(styleName);
 
             return this;
         }
 
-        public IXLSXWriter<T> Modify(Action<XSSFWorkbook, ISheet> action)
+        public XLSXWriter<T> Modify(Action<XSSFWorkbook, ISheet> action)
         {
             action(_workbook, _sheet);
 
             return this;
         }
 
-        public void Generate(string resultFilePath, T[] models)
+        public void Generate(string resultFilePath, T[] entities)
         {
-            _templating?.MoveFooterIfNeed(models.Length);
+            _templating.MoveFooterIfNeed(_sheet, entities.Length);
 
             var newRowInd = InsertIndex;
             var minColIndex = _rules.Select(r => r.ExcelColInd).Min();
             var maxColIndex = _rules.Select(r => r.ExcelColInd).Max();
 
-            foreach (var model in models)
+            foreach (var model in entities)
             {
                 var row = _sheet.CreateRow(newRowInd++);
                 for (var colInd = minColIndex; colInd <= maxColIndex; colInd++)
@@ -118,7 +122,7 @@ namespace ExcelEnt.Write
                 }
             }
 
-            _styling.ApplyConditionRowStyles(models, InsertIndex);
+            _styling.ApplyConditionRowStyles(entities, InsertIndex);
 
             SaveExcel(resultFilePath);
         }
