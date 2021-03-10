@@ -1,7 +1,5 @@
 ﻿using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
-using System;
-using System.Linq.Expressions;
 
 namespace ExcelEnt.Write
 {
@@ -14,6 +12,11 @@ namespace ExcelEnt.Write
         internal int InsertInd { get; private set; }
         internal bool MoveFooter { get; private set; }
 
+        /// <summary>
+        /// Create workbook with columns titles
+        /// </summary>
+        /// <param name="workbook">Excel workbook</param>
+        /// <param name="headers">Columns titles</param>
         internal void FromEmptyWithHeaders(XSSFWorkbook workbook, string[] headers)
         {
             InsertInd = 0;
@@ -27,6 +30,13 @@ namespace ExcelEnt.Write
             }
         }
 
+        /// <summary>
+        /// Create excel from template
+        /// </summary>
+        /// <param name="filePath">Excel template path</param>
+        /// <param name="insertInd">Entities insert index</param>
+        /// <param name="moveFooter">Move cells after inserting index</param>
+        /// <returns></returns>
         internal XSSFWorkbook FromTemplate(string filePath, int insertInd, bool moveFooter)
         {
             var workbook = new XSSFWorkbook(filePath);
@@ -36,6 +46,12 @@ namespace ExcelEnt.Write
             return workbook;
         }
 
+        /// <summary>
+        /// Replace template shortcodes with value
+        /// </summary>
+        /// <param name="sheet">Excel sheet</param>
+        /// <param name="shortCode">Shortcode</param>
+        /// <param name="value">Shortcode value</param>
         internal void ReplaceShortCode(ISheet sheet, string shortCode, string value)
         {
             foreach (IRow row in sheet)
@@ -55,6 +71,11 @@ namespace ExcelEnt.Write
             }
         }
 
+        /// <summary>
+        /// Move footer row for entities inserting
+        /// </summary>
+        /// <param name="sheet">Excel sheet</param>
+        /// <param name="len">Offset</param>
         internal void MoveFooterIfNeed(ISheet sheet, int len)
         {
             if (MoveFooter && sheet.LastRowNum > InsertInd)

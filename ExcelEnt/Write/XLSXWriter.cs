@@ -34,6 +34,13 @@ namespace ExcelEnt.Write
 
         private int InsertIndex => _templating.InsertInd;
 
+        /// <summary>
+        /// Add entities to excel value rule
+        /// </summary>
+        /// <param name="propName">Entity property name</param>
+        /// <param name="colIndex">Excel cell index</param>
+        /// <param name="styleName">Existing style name</param>
+        /// <returns></returns>
         public XLSXWriter<T> AddRule(Expression<Func<T, object>> propName, int colIndex, string styleName = null)
         {
             var prop = TypeExtentions.GetProperty(propName);
@@ -42,6 +49,14 @@ namespace ExcelEnt.Write
             return this;
         }
 
+        /// <summary>
+        /// Create workbook and new sheet from template
+        /// </summary>
+        /// <param name="filePath">Excel template path</param>
+        /// <param name="page">Excel sheet index</param>
+        /// <param name="insertInd">Entities insert index</param>
+        /// <param name="moveFooter">Move cells after inserting index</param>
+        /// <returns></returns>
         public XLSXWriter<T> FromTemplate(string filePath, int page, int insertInd, bool moveFooter)
         {
             _workbook = _templating.FromTemplate(filePath, insertInd, moveFooter);
@@ -51,6 +66,11 @@ namespace ExcelEnt.Write
             return this;
         }
 
+        /// <summary>
+        /// Create workbook and new sheet with columns titles
+        /// </summary>
+        /// <param name="styleName">Existing style name</param>
+        /// <param name="headers">Columns titles</param>
         public XLSXWriter<T> FromEmptyWithHeaders(string[] headers, string styleName = null)
         {
             _templating.FromEmptyWithHeaders(_workbook, headers);
@@ -58,6 +78,11 @@ namespace ExcelEnt.Write
             return this;
         }
 
+        /// <summary>
+        /// Replace template shortcodes with value
+        /// </summary>
+        /// <param name="sheet">Excel sheet</param>
+        /// <param name="shortCode">Shortcode</param>
         public XLSXWriter<T> ReplaceShortCode(string shortcode, string value)
         {
             _templating.ReplaceShortCode(_sheet, shortcode, value);
@@ -65,6 +90,11 @@ namespace ExcelEnt.Write
             return this;
         }
 
+        /// <summary>
+        /// Add style to current sheet
+        /// </summary>
+        /// <param name="styling">Style definition</param>
+        /// <param name="styleName">Style name</param>
         public XLSXWriter<T> AddStyle(Action<ICellStyle> styling, string styleName)
         {
             _styling.AddStyle(styling, styleName);
@@ -72,6 +102,10 @@ namespace ExcelEnt.Write
             return this;
         }
 
+        /// <summary>
+        /// Add row style by condition
+        /// </summary>
+        /// <param name="styleName"></param>
         public XLSXWriter<T> AddConditionRowStyle(Func<T, string> styleName)
         {
             _styling.AddConditionRowStyle(styleName);
@@ -79,6 +113,23 @@ namespace ExcelEnt.Write
             return this;
         }
 
+        /// <summary>
+        /// Add cells default style
+        /// </summary>
+        /// <param name="styleName">Existing style name</param>
+        /// <returns></returns>
+        public XLSXWriter<T> AddDefaultRowsStyle(string styleName)
+        {
+            _styling.AddRowDefaultStyle(styleName);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Workbook and sheet modifications
+        /// </summary>
+        /// <param name="action">Custom modification</param>
+        /// <returns></returns>
         public XLSXWriter<T> Modify(Action<XSSFWorkbook, ISheet> action)
         {
             action(_workbook, _sheet);
@@ -86,6 +137,11 @@ namespace ExcelEnt.Write
             return this;
         }
 
+        /// <summary>
+        /// Create excel file from entities
+        /// </summary>
+        /// <param name="resultFilePath">Created excel file path</param>
+        /// <param name="entities">Entities</param>
         public void Generate(string resultFilePath, T[] entities)
         {
             _templating.MoveFooterIfNeed(_sheet, entities.Length);
@@ -98,12 +154,12 @@ namespace ExcelEnt.Write
             {
                 var row = _sheet.CreateRow(newRowInd++);
                 for (var colInd = minColIndex; colInd <= maxColIndex; colInd++)
-                    row.CreateCell(colInd);
+                    CreateStyledCell(row, colInd);
 
                 foreach (var rule in _rules)
                 {
                     var value = rule.Prop.GetValue(model);
-                    var newCell = GetCell(row, rule);
+                    var newCell = row.GetCell(rule.ExcelColInd);
 
                     if (value == null)
                         newCell.SetCellValue("");
@@ -128,10 +184,10 @@ namespace ExcelEnt.Write
         }
 
 
-        private ICell GetCell(IRow row, WriteRule rule)
+        private ICell CreateStyledCell(IRow row, int cellIndex)
         {
-            var newCell = row.GetCell(rule.ExcelColInd);
-            newCell.CellStyle = _styling.GetStyle(rule.StyleName);
+            var newCell = row.CreateCell(cellIndex);
+            _styling.SetStyle(newCell, null);
 
             return newCell;
         }

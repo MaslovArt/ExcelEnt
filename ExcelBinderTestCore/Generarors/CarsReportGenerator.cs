@@ -8,7 +8,8 @@ namespace ExcelBinderTestCore.Generarors
 {
     public class CarsReportGenerator
     {
-        private string RedBGStyle = "red-bg";
+        private string RedBGStyle = "table-red-bg";
+        private string TableStyle = "table";
         private string templatePath = @"Documents\CarsReport.xlsx";
 
         public void Generate(string newFile, IEnumerable<Car> cars)
@@ -27,14 +28,28 @@ namespace ExcelBinderTestCore.Generarors
                 .AddRule(c => c.Crashed, 4)
                 .AddRule(c => c.Class, 5)
                 .AddStyle(CreateRedStyle, RedBGStyle)
+                .AddStyle(CreateTableStyle, TableStyle)
+                .AddDefaultRowsStyle(TableStyle)
                 .AddConditionRowStyle(car => car.Crashed ? RedBGStyle : null)
                 .Generate(newFile, carsArray);
         }
 
         private void CreateRedStyle(ICellStyle style)
         {
+            style.BorderBottom = BorderStyle.Thin;
+            style.BorderTop = BorderStyle.Thin;
+            style.BorderLeft = BorderStyle.Thin;
+            style.BorderRight = BorderStyle.Thin;
             style.FillForegroundColor = IndexedColors.Red.Index;
             style.FillPattern = FillPattern.SolidForeground;
+        }
+
+        private void CreateTableStyle(ICellStyle style)
+        {
+            style.BorderBottom = BorderStyle.Thin;
+            style.BorderTop = BorderStyle.Thin;
+            style.BorderLeft = BorderStyle.Thin;
+            style.BorderRight = BorderStyle.Thin;
         }
     }
 }
