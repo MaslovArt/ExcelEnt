@@ -10,9 +10,6 @@ namespace ExcelBinderTestCore.Generarors
     {
         private string RedBGStyle = "red-bg";
         private string templatePath = @"Documents\CarsReport.xlsx";
-        private int templatePage = 0;
-        private int insertInd = 4;
-        private bool moveFooter = true;
 
         public void Generate(string newFile, IEnumerable<Car> cars)
         {
@@ -20,7 +17,7 @@ namespace ExcelBinderTestCore.Generarors
             var carsArray = cars.ToArray();
 
             generator
-                .FromTemplate(templatePath, templatePage, insertInd, moveFooter)
+                .FromTemplate(templatePath, 0, 4, true)
                 .ReplaceShortCode("CarCount", carsArray.Length.ToString())
                 .ReplaceShortCode("Name", "Putin V.V.")
                 .AddRule(c => c.Brand, 0)

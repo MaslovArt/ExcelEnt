@@ -1,4 +1,5 @@
 ﻿using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 using System;
 using System.Linq.Expressions;
 
@@ -11,6 +12,7 @@ namespace ExcelHelper.Write
         IXLSXWriter<T> AddStyle(Action<ICellStyle> styling, string styleName);
         IXLSXTemplating<T> FromEmptyWithHeaders(string[] headers, string styleName = null);
         IXLSXTemplating<T> FromTemplate(string filePath, int page, int insertInd, bool moveFooter);
+        IXLSXWriter<T> Modify(Action<XSSFWorkbook, ISheet> action);
         void Generate(string resultFilePath, T[] models);
     }
 }

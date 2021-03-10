@@ -27,6 +27,8 @@ namespace ExcelHelper.Write
             _styling = new XLSXStyling<T>(_workbook, _sheet);
         }
 
+        private int InsertIndex => _templating?.InsertInd ?? 0;
+
         public IXLSXWriter<T> AddRule(Expression<Func<T, object>> propName, int colIndex, string styleName = null)
         {
             var prop = TypeExtentions.GetProperty(propName);
@@ -69,11 +71,18 @@ namespace ExcelHelper.Write
             return this;
         }
 
+        public IXLSXWriter<T> Modify(Action<XSSFWorkbook, ISheet> action)
+        {
+            action(_workbook, _sheet);
+
+            return this;
+        }
+
         public void Generate(string resultFilePath, T[] models)
         {
             _templating?.MoveFooterIfNeed(models.Length);
 
-            var newRowInd = _templating?.InsertInd ?? 0;
+            var newRowInd = InsertIndex;
             var minColIndex = _rules.Select(r => r.ExcelColInd).Min();
             var maxColIndex = _rules.Select(r => r.ExcelColInd).Max();
 
@@ -105,7 +114,7 @@ namespace ExcelHelper.Write
                 }
             }
 
-            _styling.ApplyConditionRowStyles(models, _templating.InsertInd);
+            _styling.ApplyConditionRowStyles(models, InsertIndex);
 
             SaveExcel(resultFilePath);
         }

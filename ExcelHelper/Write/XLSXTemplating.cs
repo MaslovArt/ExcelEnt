@@ -64,10 +64,8 @@ namespace ExcelHelper.Write
                         var shortcodeKey = $"[[[{shortCode}]]]";
                         if (cell.ToString().Contains(shortcodeKey))
                         {
-                            var newValue = cell.ToString()
-                                .Replace(shortcodeKey, value);
+                            var newValue = cell.ToString().Replace(shortcodeKey, value);
                             cell.SetCellValue(newValue);
-                            break;
                         }
                     }
                 }
@@ -90,6 +88,11 @@ namespace ExcelHelper.Write
 
                 _writer._sheet.ShiftRows(afterHeaderRow, templateLastRow, len);
             }
+        }
+
+        public IXLSXWriter<T> Modify(Action<XSSFWorkbook, ISheet> action)
+        {
+            return _writer.Modify(action);
         }
     }
 }
