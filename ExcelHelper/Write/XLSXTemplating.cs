@@ -5,6 +5,10 @@ using System.Linq.Expressions;
 
 namespace ExcelHelper.Write
 {
+    /// <summary>
+    /// Excel templating
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     internal class XLSXTemplating<T> : IXLSXTemplating<T>
     {
         private XLSXWriter<T> _writer;

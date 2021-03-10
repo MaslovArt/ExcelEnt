@@ -9,24 +9,45 @@ using System.Linq.Expressions;
 
 namespace ExcelHelper.Bind
 {
+    /// <summary>
+    /// Excel sheet to entity binder
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class XLSXBinder<T> where T : new()
     {
         private List<BindRule> Rules = new List<BindRule>();
         private int? StartIndex { get; set; }
         private int? EndIndex { get; set; }
 
+        /// <summary>
+        /// Add starting read index
+        /// </summary>
+        /// <param name="ind">Start index</param>
+        /// <returns></returns>
         public XLSXBinder<T> StartFrom(int ind)
         {
             StartIndex = ind;
             return this;
         }
 
+        /// <summary>
+        /// Add ending read index
+        /// </summary>
+        /// <param name="ind">End index</param>
+        /// <returns></returns>
         public XLSXBinder<T> EndOn(int ind)
         {
             EndIndex = ind;
             return this;
         }
 
+        /// <summary>
+        /// Add excel cell value to entity property rule
+        /// </summary>
+        /// <param name="colIndex">Excel cell index</param>
+        /// <param name="propName">Entity property name</param>
+        /// <param name="map">Cell value to property mapper</param>
+        /// <returns></returns>
         public XLSXBinder<T> AddRule(int colIndex, Expression<Func<T, object>> propName, Func<ICell, object> map)
         {
             var prop = TypeExtentions.GetProperty(propName);
@@ -35,12 +56,24 @@ namespace ExcelHelper.Bind
             return this;
         } 
 
+        /// <summary>
+        /// Bind excel sheet to entity
+        /// </summary>
+        /// <param name="filePath">Excel file path</param>
+        /// <param name="pageInd">Excel page index</param>
+        /// <returns>Binded entities</returns>
         public T[] Bind(string filePath, int pageInd)
         {
             var file = new FileInfo(filePath);
             return Bind(file, pageInd);
         }
 
+        /// <summary>
+        /// Bind excel sheet to entity
+        /// </summary>
+        /// <param name="file">Excel file</param>
+        /// <param name="pageInd">Excel page index</param>
+        /// <returns>Binded entities</returns>
         public T[] Bind(FileInfo file, int pageInd)
         {
             CheckFile(file);

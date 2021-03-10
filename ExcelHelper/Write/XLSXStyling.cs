@@ -5,6 +5,10 @@ using System.Collections.Generic;
 
 namespace ExcelHelper.Write
 {
+    /// <summary>
+    /// Excel styling
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     internal class XLSXStyling<T>
     {
         private Dictionary<string, ICellStyle> _styles;

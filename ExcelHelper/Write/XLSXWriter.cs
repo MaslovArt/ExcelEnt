@@ -9,6 +9,10 @@ using System.Linq.Expressions;
 
 namespace ExcelHelper.Write
 {
+    /// <summary>
+    /// Entities to excel writer
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class XLSXWriter<T> : IXLSXWriter<T>
     {
         internal List<WriteRule> _rules;
