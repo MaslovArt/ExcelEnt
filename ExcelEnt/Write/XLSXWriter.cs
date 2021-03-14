@@ -15,36 +15,29 @@ namespace ExcelEnt.Write
     /// <typeparam name="T"></typeparam>
     public class XLSXWriter<T>
     {
-        internal List<WriteRule>    _rules;
-        internal XLSXStyling<T>     _styling;
-        internal XLSXTemplating<T>  _templating;
+        private List<WriteRule>                     _rules;
+        private XLSXStyling<T>                      _styling;
+        private XLSXTemplating<T>                   _templating;
+        private List<Action<XSSFWorkbook, ISheet>>  _modifications;
 
         public XLSXWriter()
         {
             _rules = new List<WriteRule>();
             _templating = new XLSXTemplating<T>();
-            //_styling = new XLSXStyling<T>(_workbook, _sheet);
+            _styling = new XLSXStyling<T>();
+            _modifications = new List<Action<XSSFWorkbook, ISheet>>();
         }
 
-        private int InsertIndex => _templating.InsertInd;
-
-        /// <summary>
-        /// Add entities to excel value rule
-        /// </summary>
-        /// <param name="propName">Entity property name</param>
-        /// <param name="colIndex">Excel cell index</param>
-        /// <param name="styleName">Existing style name</param>
-        /// <returns></returns>
-        public XLSXWriter<T> AddRule(Expression<Func<T, object>> propName, int colIndex, string styleName = null)
+        public XLSXWriter<T> AddRule(Expression<Func<T, object>> propName, int colIndex)
         {
             var prop = TypeExtentions.GetProperty(propName);
-            _rules.Add(new WriteRule(colIndex, prop, styleName));
+            _rules.Add(new WriteRule(colIndex, prop));
 
             return this;
         }
+        
         public XLSXWriter<T> UseTemplating(Action<XLSXTemplating<T>> config)
         {
-            _templating = new XLSXTemplating<T>();
             config(_templating);
 
             return this;
@@ -57,38 +50,38 @@ namespace ExcelEnt.Write
             return this;
         }
 
-        /// <summary>
-        /// Workbook and sheet modifications
-        /// </summary>
-        /// <param name="action">Custom modification</param>
-        /// <returns></returns>
-        public XLSXWriter<T> Modify(Action<XSSFWorkbook, ISheet> action)
+        public XLSXWriter<T> Modify(Action<XSSFWorkbook, ISheet> modification)
         {
-            //action(_workbook, _sheet);
+            _modifications.Add(modification);
 
             return this;
         }
 
-        /// <summary>
-        /// Create excel file from entities
-        /// </summary>
-        /// <param name="resultFilePath">Created excel file path</param>
-        /// <param name="entities">Entities</param>
         public void Generate(string resultFilePath, T[] entities)
         {
+            var insertIndex = _templating?.InsertInd ?? 0;
+
             var workbook = _templating?.CreateWorkbook(entities.Length) ?? new XSSFWorkbook();
             var sheet = workbook.GetSheetAt(0);
 
-            WriteEntities(sheet, entities);
-
-            //_styling.ApplyConditionRowStyles(entities, InsertIndex);
+            _styling?.Build(workbook);
+            WriteEntities(sheet, entities, insertIndex);
+            _styling?.ApplyConditionRowStyles(sheet, entities, insertIndex);
+            ApplyModifications(workbook, sheet);
 
             SaveExcel(workbook, resultFilePath);
         }
 
-        private void WriteEntities(ISheet sheet, T[] entities)
+
+        private void ApplyModifications(XSSFWorkbook workbook, ISheet sheet)
         {
-            var newRowInd = InsertIndex;
+            foreach (var modification in _modifications)
+                modification(workbook, sheet);
+        }
+
+        private void WriteEntities(ISheet sheet, T[] entities, int insertIndex)
+        {
+            var newRowInd = insertIndex;
             var minColIndex = _rules.Select(r => r.ExcelColInd).Min();
             var maxColIndex = _rules.Select(r => r.ExcelColInd).Max();
 
@@ -124,7 +117,7 @@ namespace ExcelEnt.Write
         private ICell CreateStyledCell(IRow row, int cellIndex)
         {
             var newCell = row.CreateCell(cellIndex);
-            //_styling.SetStyle(newCell, null);
+            _styling?.SetStyle(newCell);
 
             return newCell;
         }

@@ -7,11 +7,10 @@ namespace ExcelEnt.Write
     /// </summary>
     internal class WriteRule
     {
-        internal WriteRule(int excelColInd, PropertyInfo prop, string styleName)
+        internal WriteRule(int excelColInd, PropertyInfo prop)
         {
             ExcelColInd = excelColInd;
             Prop = prop;
-            StyleName = styleName;
         }
 
         /// <summary>
@@ -23,10 +22,5 @@ namespace ExcelEnt.Write
         /// Excel cell index
         /// </summary>
         internal int ExcelColInd { get; set; }
-
-        /// <summary>
-        /// Cell style name
-        /// </summary>
-        internal string StyleName { get; set; }
     }
 }

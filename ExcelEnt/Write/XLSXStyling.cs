@@ -2,6 +2,7 @@
 using NPOI.XSSF.UserModel;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ExcelEnt.Write
 {
@@ -11,71 +12,68 @@ namespace ExcelEnt.Write
     /// <typeparam name="T"></typeparam>
     public class XLSXStyling<T>
     {
-        private Dictionary<string, ICellStyle>  _styles;
-        private List<Func<T, string>>           _conditionStyles;
-        private string                          _rowsDefaultStyleName;
-        private ICellStyle                      _defaultStyle;
+        private Dictionary<string, Action<ICellStyle>>  _styleDefinitions;
+        private Dictionary<string, ICellStyle>          _styles;
+        private Dictionary<int, string>                 _cellsStyles;
+        private List<Func<T, int, string>>              _conditionStyles;
+        private string                                  _cellDefaultStyleName;
+        private ICellStyle                              _defaultStyle;
 
-        private XSSFWorkbook                    _workbook;
-        private ISheet                          _sheet;
-
-        public XLSXStyling(XSSFWorkbook workbook, ISheet sheet)
+        public XLSXStyling()
         {
-            _workbook = workbook;
-            _sheet = sheet;
-            _styles = new Dictionary<string, ICellStyle>();
-            _conditionStyles = new List<Func<T, string>>();
+            _styleDefinitions = new Dictionary<string, Action<ICellStyle>>();
+            _conditionStyles = new List<Func<T, int, string>>();
+            _cellsStyles = new Dictionary<int, string>();
         }
 
-        /// <summary>
-        /// Add style to current sheet
-        /// </summary>
-        /// <param name="styling">Style definition</param>
-        /// <param name="styleName">Style name</param>
         public XLSXStyling<T> AddStyle(Action<ICellStyle> styling, string styleName)
         {
-            var newStyle = _workbook.CreateCellStyle();
-            styling(newStyle);
-
-            if (_defaultStyle == null && styleName == _rowsDefaultStyleName)
-            {
-                _defaultStyle = newStyle;
-            }
-
-            _styles.Add(styleName, newStyle);
+            _styleDefinitions.Add(styleName, styling);
 
             return this;
         }
 
-        /// <summary>
-        /// Add row style by condition
-        /// </summary>
-        /// <param name="styleName"></param>
-        public XLSXStyling<T> AddConditionRowStyle(Func<T, string> styleName)
+        public XLSXStyling<T> AddConditionRowStyle(Func<T, int, string> styleName)
         {
             _conditionStyles.Add(styleName);
 
             return this;
         }
 
-        /// <summary>
-        /// Add default rows styling
-        /// </summary>
-        /// <param name="styleName">Existing style name</param>
-        public XLSXStyling<T> AddRowDefaultStyle(string styleName)
+        public XLSXStyling<T> AddCellsDefaultStyle(string styleName)
         {
-            _rowsDefaultStyleName = styleName;
-            _defaultStyle = _styles[styleName];
+            _cellDefaultStyleName = styleName;
 
             return this;
         } 
 
-        /// <summary>
-        /// Apply condition row styles
-        /// </summary>
-        /// <param name="entities">Entities</param>
-        /// <param name="insertIndex">Entities insert index</param>
-        internal void ApplyConditionRowStyles(T[] entities, int insertIndex)
+        public XLSXStyling<T> AddCellStyle(int cellIndex, string styleName)
+        {
+            _cellsStyles.Add(cellIndex, styleName);
+
+            return this;
+        }
+
+        public XLSXStyling<T> Build(XSSFWorkbook workbook)
+        {
+            _styles = _styleDefinitions.ToDictionary(
+                sd => sd.Key,
+                sd =>
+                {
+                    var newStyle = workbook.CreateCellStyle();
+                    sd.Value(newStyle);
+
+                    return newStyle;
+                });
+
+            _defaultStyle = !string.IsNullOrEmpty(_cellDefaultStyleName)
+                ? _styles[_cellDefaultStyleName]
+                : null;
+
+            return this;
+        }
+
+        public void ApplyConditionRowStyles(ISheet sheet, T[] entities, int insertIndex)
         {
             if (_conditionStyles.Count == 0) return;
 
@@ -83,10 +81,10 @@ namespace ExcelEnt.Write
             {
                 foreach (var condition in _conditionStyles)
                 {
-                    var styleName = condition(entities[i]);
+                    var styleName = condition(entities[i], i);
                     if (!string.IsNullOrEmpty(styleName))
                     {
-                        var row = _sheet.GetRow(i + insertIndex);
+                        var row = sheet.GetRow(i + insertIndex);
                         var style = _styles[styleName];
 
                         foreach (var cell in row)
@@ -96,21 +94,16 @@ namespace ExcelEnt.Write
             }
         }
 
-        /// <summary>
-        /// Set cell style by name or row default
-        /// </summary>
-        /// <param name="cell">Cell</param>
-        /// <param name="name">Style name</param>
-        /// <returns></returns>
-        internal void SetStyle(ICell cell, string name)
+        public void SetStyle(ICell cell)
         {
-            ICellStyle style = null;
-            if (!string.IsNullOrEmpty(name))
+            ICellStyle cellStyle = null;
+
+            if (_cellsStyles.TryGetValue(cell.ColumnIndex, out string cellStyleName))
             {
-                style = _styles[name];
+                cellStyle = _styles[cellStyleName];
             }
 
-            cell.CellStyle = style ?? _defaultStyle;
+            cell.CellStyle = cellStyle ?? _defaultStyle;
         }
     }
 }
