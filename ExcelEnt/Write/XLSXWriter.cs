@@ -36,14 +36,14 @@ namespace ExcelEnt.Write
             return this;
         }
         
-        public XLSXWriter<T> UseTemplating(Action<XLSXTemplating<T>> config)
+        public XLSXWriter<T> UseTemplating(Action<IXLSXTemplating<T>> config)
         {
             config(_templating);
 
             return this;
         }
 
-        public XLSXWriter<T> UseStyling(Action<XLSXStyling<T>> config)
+        public XLSXWriter<T> UseStyling(Action<IXLSXStyling<T>> config)
         {
             config(_styling);
 

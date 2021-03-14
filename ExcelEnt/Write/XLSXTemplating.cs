@@ -8,7 +8,7 @@ namespace ExcelEnt.Write
     /// Excel templating
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class XLSXTemplating<T>
+    public class XLSXTemplating<T> : IXLSXTemplating<T>
     {
         private Dictionary<string, string> _shortcodes;
         private bool _moveFooter;

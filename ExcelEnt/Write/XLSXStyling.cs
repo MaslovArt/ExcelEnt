@@ -10,14 +10,14 @@ namespace ExcelEnt.Write
     /// Excel styling
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class XLSXStyling<T>
+    public class XLSXStyling<T> : IXLSXStyling<T>
     {
-        private Dictionary<string, Action<ICellStyle>>  _styleDefinitions;
-        private Dictionary<string, ICellStyle>          _styles;
-        private Dictionary<int, string>                 _cellsStyles;
-        private List<Func<T, int, string>>              _conditionStyles;
-        private string                                  _cellDefaultStyleName;
-        private ICellStyle                              _defaultStyle;
+        private Dictionary<string, Action<ICellStyle>> _styleDefinitions;
+        private Dictionary<string, ICellStyle> _styles;
+        private Dictionary<int, string> _cellsStyles;
+        private List<Func<T, int, string>> _conditionStyles;
+        private string _cellDefaultStyleName;
+        private ICellStyle _defaultStyle;
 
         public XLSXStyling()
         {
@@ -26,28 +26,28 @@ namespace ExcelEnt.Write
             _cellsStyles = new Dictionary<int, string>();
         }
 
-        public XLSXStyling<T> AddStyle(Action<ICellStyle> styling, string styleName)
+        public IXLSXStyling<T> AddStyle(Action<ICellStyle> styling, string styleName)
         {
             _styleDefinitions.Add(styleName, styling);
 
             return this;
         }
 
-        public XLSXStyling<T> AddConditionRowStyle(Func<T, int, string> styleName)
+        public IXLSXStyling<T> AddConditionRowStyle(Func<T, int, string> styleName)
         {
             _conditionStyles.Add(styleName);
 
             return this;
         }
 
-        public XLSXStyling<T> AddCellsDefaultStyle(string styleName)
+        public IXLSXStyling<T> AddCellsDefaultStyle(string styleName)
         {
             _cellDefaultStyleName = styleName;
 
             return this;
-        } 
+        }
 
-        public XLSXStyling<T> AddCellStyle(int cellIndex, string styleName)
+        public IXLSXStyling<T> AddCellStyle(int cellIndex, string styleName)
         {
             _cellsStyles.Add(cellIndex, styleName);
 
