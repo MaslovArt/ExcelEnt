@@ -21,7 +21,14 @@ namespace ExcelEnt.Write
             _shortcodes = new Dictionary<string, string>();
         }
 
-        public XLSXTemplating<T> FromTemplate(string filePath, int insertInd, bool moveFooter)
+        /// <summary>
+        /// Workbook from template
+        /// </summary>
+        /// <param name="filePath">Template path</param>
+        /// <param name="insertInd">Template entities insertion index</param>
+        /// <param name="moveFooter">Move rows after insert index</param>
+        /// <returns></returns>
+        public IXLSXTemplating<T> FromTemplate(string filePath, int insertInd, bool moveFooter)
         {
             InsertInd = insertInd;
             _moveFooter = moveFooter;
@@ -30,13 +37,24 @@ namespace ExcelEnt.Write
             return this;
         }
 
-        public XLSXTemplating<T> ReplaceShortCode(string shortCode, string value)
+        /// <summary>
+        /// Replace shortcode
+        /// </summary>
+        /// <param name="shortCode"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public IXLSXTemplating<T> ReplaceShortCode(string shortCode, string value)
         {
             _shortcodes.Add(shortCode, value);
 
             return this;
         }
 
+        /// <summary>
+        /// Create new workbook
+        /// </summary>
+        /// <param name="entitiesCount">Entities count (for moving footer)</param>
+        /// <returns></returns>
         public XSSFWorkbook CreateWorkbook(int entitiesCount)
         {
             var workbook = new XSSFWorkbook(_templatePath);

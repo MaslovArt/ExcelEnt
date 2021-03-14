@@ -28,6 +28,12 @@ namespace ExcelEnt.Write
             _modifications = new List<Action<XSSFWorkbook, ISheet>>();
         }
 
+        /// <summary>
+        /// Add entity property to excel cell value rule
+        /// </summary>
+        /// <param name="propName">Entity property name</param>
+        /// <param name="colIndex">Column index</param>
+        /// <returns></returns>
         public XLSXWriter<T> AddRule(Expression<Func<T, object>> propName, int colIndex)
         {
             var prop = TypeExtentions.GetProperty(propName);
@@ -36,6 +42,11 @@ namespace ExcelEnt.Write
             return this;
         }
         
+        /// <summary>
+        /// Create excel from template
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
         public XLSXWriter<T> UseTemplating(Action<IXLSXTemplating<T>> config)
         {
             config(_templating);
@@ -43,6 +54,11 @@ namespace ExcelEnt.Write
             return this;
         }
 
+        /// <summary>
+        /// Add styles
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
         public XLSXWriter<T> UseStyling(Action<IXLSXStyling<T>> config)
         {
             config(_styling);
@@ -50,6 +66,11 @@ namespace ExcelEnt.Write
             return this;
         }
 
+        /// <summary>
+        /// Add modifications to final workbook
+        /// </summary>
+        /// <param name="modification"></param>
+        /// <returns></returns>
         public XLSXWriter<T> Modify(Action<XSSFWorkbook, ISheet> modification)
         {
             _modifications.Add(modification);
@@ -57,6 +78,11 @@ namespace ExcelEnt.Write
             return this;
         }
 
+        /// <summary>
+        /// Generate excel from entities
+        /// </summary>
+        /// <param name="resultFilePath"></param>
+        /// <param name="entities"></param>
         public void Generate(string resultFilePath, T[] entities)
         {
             var insertIndex = _templating?.InsertInd ?? 0;

@@ -26,6 +26,12 @@ namespace ExcelEnt.Write
             _cellsStyles = new Dictionary<int, string>();
         }
 
+        /// <summary>
+        /// Add new style
+        /// </summary>
+        /// <param name="styling">Definition</param>
+        /// <param name="styleName">Style name</param>
+        /// <returns></returns>
         public IXLSXStyling<T> AddStyle(Action<ICellStyle> styling, string styleName)
         {
             _styleDefinitions.Add(styleName, styling);
@@ -33,6 +39,11 @@ namespace ExcelEnt.Write
             return this;
         }
 
+        /// <summary>
+        /// Add condition row style
+        /// </summary>
+        /// <param name="styleName">Style func (entite, rowIndex, styleName)</param>
+        /// <returns></returns>
         public IXLSXStyling<T> AddConditionRowStyle(Func<T, int, string> styleName)
         {
             _conditionStyles.Add(styleName);
@@ -40,6 +51,11 @@ namespace ExcelEnt.Write
             return this;
         }
 
+        /// <summary>
+        /// Add default style for cells
+        /// </summary>
+        /// <param name="styleName">Style name</param>
+        /// <returns></returns>
         public IXLSXStyling<T> AddCellsDefaultStyle(string styleName)
         {
             _cellDefaultStyleName = styleName;
@@ -47,13 +63,24 @@ namespace ExcelEnt.Write
             return this;
         }
 
-        public IXLSXStyling<T> AddCellStyle(int cellIndex, string styleName)
+        /// <summary>
+        /// Add style for column
+        /// </summary>
+        /// <param name="columnIndex">Column index</param>
+        /// <param name="styleName">Style name</param>
+        /// <returns></returns>
+        public IXLSXStyling<T> AddCellStyle(int columnIndex, string styleName)
         {
-            _cellsStyles.Add(cellIndex, styleName);
+            _cellsStyles.Add(columnIndex, styleName);
 
             return this;
         }
 
+        /// <summary>
+        /// Apply style configuration
+        /// </summary>
+        /// <param name="workbook">Excel workbook</param>
+        /// <returns></returns>
         public XLSXStyling<T> Build(XSSFWorkbook workbook)
         {
             _styles = _styleDefinitions.ToDictionary(
