@@ -1,5 +1,6 @@
 ﻿using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using System.Collections.Generic;
 
 namespace ExcelEnt.Write
 {
@@ -7,52 +8,82 @@ namespace ExcelEnt.Write
     /// Excel templating
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class XLSXTemplating<T>
+    public class XLSXTemplating<T>
     {
+        private Dictionary<string, string> _shortcodes;
+        internal bool _moveFooter;
+        internal string[] _headers;
+        internal string _templatePath { get; private set; }
+
         internal int InsertInd { get; private set; }
-        internal bool MoveFooter { get; private set; }
 
-        /// <summary>
-        /// Create workbook with columns titles
-        /// </summary>
-        /// <param name="workbook">Excel workbook</param>
-        /// <param name="headers">Columns titles</param>
-        internal void FromEmptyWithHeaders(XSSFWorkbook workbook, string[] headers)
+        public XLSXTemplating()
         {
-            InsertInd = 0;
-            var sheet = workbook.GetSheetAt(0);
-            var row = sheet.CreateRow(InsertInd++);
-
-            for (int i = 0; i < headers.Length; i++)
-            {
-                var cell = row.CreateCell(i);
-                cell.SetCellValue(headers[i]);
-            }
+            _shortcodes = new Dictionary<string, string>();
         }
 
-        /// <summary>
-        /// Create excel from template
-        /// </summary>
-        /// <param name="filePath">Excel template path</param>
-        /// <param name="insertInd">Entities insert index</param>
-        /// <param name="moveFooter">Move cells after inserting index</param>
-        /// <returns></returns>
-        internal XSSFWorkbook FromTemplate(string filePath, int insertInd, bool moveFooter)
+        public XLSXTemplating<T> FromEmptyWithHeaders(string[] headers)
         {
-            var workbook = new XSSFWorkbook(filePath);
+            InsertInd = 0;
+            _headers = headers;
+
+            return this;
+        }
+
+        public XLSXTemplating<T> FromTemplate(string filePath, int insertInd, bool moveFooter)
+        {
             InsertInd = insertInd;
-            MoveFooter = moveFooter;
+            _moveFooter = moveFooter;
+            _templatePath = filePath;
+
+            return this;
+        }
+
+        public XLSXTemplating<T> ReplaceShortCode(string shortCode, string value)
+        {
+            _shortcodes.Add(shortCode, value);
+
+            return this;
+        }
+
+        public XSSFWorkbook CreateWorkbook(int entitiesCount)
+        {
+            var workbook = _templatePath != null
+                ? CreateFromTemplate()
+                : CreateFromEmptyWithHeaders();
+
+            var sheet = workbook.GetSheetAt(0);
+
+            ApplyShortcodesReplace(sheet);
+            MoveFooterIfNeed(sheet, entitiesCount);
 
             return workbook;
         }
 
-        /// <summary>
-        /// Replace template shortcodes with value
-        /// </summary>
-        /// <param name="sheet">Excel sheet</param>
-        /// <param name="shortCode">Shortcode</param>
-        /// <param name="value">Shortcode value</param>
-        internal void ReplaceShortCode(ISheet sheet, string shortCode, string value)
+        private XSSFWorkbook CreateFromEmptyWithHeaders()
+        {
+            var workbook = new XSSFWorkbook();
+            var sheet = workbook.GetSheetAt(0);
+
+            if (_headers != null && _headers.Length > 0)
+            {
+                var row = sheet.CreateRow(InsertInd++);
+                for (int i = 0; i < _headers.Length; i++)
+                {
+                    var cell = row.CreateCell(i);
+                    cell.SetCellValue(_headers[i]);
+                }
+            }
+
+            return workbook;
+        }
+
+        private XSSFWorkbook CreateFromTemplate()
+        {
+            return new XSSFWorkbook(_templatePath);
+        }
+
+        private void ApplyShortcodesReplace(ISheet sheet)
         {
             foreach (IRow row in sheet)
             {
@@ -60,25 +91,23 @@ namespace ExcelEnt.Write
                 {
                     if (cell != null)
                     {
-                        var shortcodeKey = $"[[[{shortCode}]]]";
-                        if (cell.ToString().Contains(shortcodeKey))
+                        foreach (var shortcode in _shortcodes)
                         {
-                            var newValue = cell.ToString().Replace(shortcodeKey, value);
-                            cell.SetCellValue(newValue);
+                            var shortcodeKey = $"[[[{shortcode.Key}]]]";
+                            if (cell.ToString().Contains(shortcodeKey))
+                            {
+                                var newValue = cell.ToString().Replace(shortcodeKey, shortcode.Value);
+                                cell.SetCellValue(newValue);
+                            }
                         }
                     }
                 }
             }
         }
 
-        /// <summary>
-        /// Move footer row for entities inserting
-        /// </summary>
-        /// <param name="sheet">Excel sheet</param>
-        /// <param name="len">Offset</param>
-        internal void MoveFooterIfNeed(ISheet sheet, int len)
+        private void MoveFooterIfNeed(ISheet sheet, int len)
         {
-            if (MoveFooter && sheet.LastRowNum > InsertInd)
+            if (_moveFooter && sheet.LastRowNum > InsertInd)
             {
                 var afterHeaderRow = InsertInd + 1;
                 var templateLastRow = sheet.LastRowNum;

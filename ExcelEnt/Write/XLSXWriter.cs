@@ -16,20 +16,14 @@ namespace ExcelEnt.Write
     public class XLSXWriter<T>
     {
         internal List<WriteRule>    _rules;
-        internal XSSFWorkbook       _workbook;
-        internal ISheet             _sheet;
-
         internal XLSXStyling<T>     _styling;
         internal XLSXTemplating<T>  _templating;
 
         public XLSXWriter()
         {
-            _workbook = new XSSFWorkbook();
-            _sheet = _workbook.CreateSheet();
-
             _rules = new List<WriteRule>();
             _templating = new XLSXTemplating<T>();
-            _styling = new XLSXStyling<T>(_workbook, _sheet);
+            //_styling = new XLSXStyling<T>(_workbook, _sheet);
         }
 
         private int InsertIndex => _templating.InsertInd;
@@ -48,79 +42,17 @@ namespace ExcelEnt.Write
 
             return this;
         }
-
-        /// <summary>
-        /// Create workbook and new sheet from template
-        /// </summary>
-        /// <param name="filePath">Excel template path</param>
-        /// <param name="page">Excel sheet index</param>
-        /// <param name="insertInd">Entities insert index</param>
-        /// <param name="moveFooter">Move cells after inserting index</param>
-        /// <returns></returns>
-        public XLSXWriter<T> FromTemplate(string filePath, int page, int insertInd, bool moveFooter)
+        public XLSXWriter<T> UseTemplating(Action<XLSXTemplating<T>> config)
         {
-            _workbook = _templating.FromTemplate(filePath, insertInd, moveFooter);
-            _sheet = _workbook.GetSheetAt(page);
-            _styling = new XLSXStyling<T>(_workbook, _sheet);
+            _templating = new XLSXTemplating<T>();
+            config(_templating);
 
             return this;
         }
 
-        /// <summary>
-        /// Create workbook and new sheet with columns titles
-        /// </summary>
-        /// <param name="styleName">Existing style name</param>
-        /// <param name="headers">Columns titles</param>
-        public XLSXWriter<T> FromEmptyWithHeaders(string[] headers, string styleName = null)
+        public XLSXWriter<T> UseStyling(Action<XLSXStyling<T>> config)
         {
-            _templating.FromEmptyWithHeaders(_workbook, headers);
-
-            return this;
-        }
-
-        /// <summary>
-        /// Replace template shortcodes with value
-        /// </summary>
-        /// <param name="sheet">Excel sheet</param>
-        /// <param name="shortCode">Shortcode</param>
-        public XLSXWriter<T> ReplaceShortCode(string shortcode, string value)
-        {
-            _templating.ReplaceShortCode(_sheet, shortcode, value);
-
-            return this;
-        }
-
-        /// <summary>
-        /// Add style to current sheet
-        /// </summary>
-        /// <param name="styling">Style definition</param>
-        /// <param name="styleName">Style name</param>
-        public XLSXWriter<T> AddStyle(Action<ICellStyle> styling, string styleName)
-        {
-            _styling.AddStyle(styling, styleName);
-
-            return this;
-        }
-
-        /// <summary>
-        /// Add row style by condition
-        /// </summary>
-        /// <param name="styleName"></param>
-        public XLSXWriter<T> AddConditionRowStyle(Func<T, string> styleName)
-        {
-            _styling.AddConditionRowStyle(styleName);
-
-            return this;
-        }
-
-        /// <summary>
-        /// Add cells default style
-        /// </summary>
-        /// <param name="styleName">Existing style name</param>
-        /// <returns></returns>
-        public XLSXWriter<T> AddDefaultRowsStyle(string styleName)
-        {
-            _styling.AddRowDefaultStyle(styleName);
+            config(_styling);
 
             return this;
         }
@@ -132,7 +64,7 @@ namespace ExcelEnt.Write
         /// <returns></returns>
         public XLSXWriter<T> Modify(Action<XSSFWorkbook, ISheet> action)
         {
-            action(_workbook, _sheet);
+            //action(_workbook, _sheet);
 
             return this;
         }
@@ -144,15 +76,25 @@ namespace ExcelEnt.Write
         /// <param name="entities">Entities</param>
         public void Generate(string resultFilePath, T[] entities)
         {
-            _templating.MoveFooterIfNeed(_sheet, entities.Length);
+            var workbook = _templating?.CreateWorkbook(entities.Length) ?? new XSSFWorkbook();
+            var sheet = workbook.GetSheetAt(0);
 
+            WriteEntities(sheet, entities);
+
+            //_styling.ApplyConditionRowStyles(entities, InsertIndex);
+
+            SaveExcel(workbook, resultFilePath);
+        }
+
+        private void WriteEntities(ISheet sheet, T[] entities)
+        {
             var newRowInd = InsertIndex;
             var minColIndex = _rules.Select(r => r.ExcelColInd).Min();
             var maxColIndex = _rules.Select(r => r.ExcelColInd).Max();
 
             foreach (var model in entities)
             {
-                var row = _sheet.CreateRow(newRowInd++);
+                var row = sheet.CreateRow(newRowInd++);
                 for (var colInd = minColIndex; colInd <= maxColIndex; colInd++)
                     CreateStyledCell(row, colInd);
 
@@ -177,26 +119,21 @@ namespace ExcelEnt.Write
                         newCell.SetCellValue(value.ToString());
                 }
             }
-
-            _styling.ApplyConditionRowStyles(entities, InsertIndex);
-
-            SaveExcel(resultFilePath);
         }
-
 
         private ICell CreateStyledCell(IRow row, int cellIndex)
         {
             var newCell = row.CreateCell(cellIndex);
-            _styling.SetStyle(newCell, null);
+            //_styling.SetStyle(newCell, null);
 
             return newCell;
         }
 
-        private void SaveExcel(string resultFilePath)
+        private void SaveExcel(XSSFWorkbook workbook, string resultFilePath)
         {
             using (var file = new FileStream(resultFilePath, FileMode.CreateNew))
             {
-                _workbook.Write(file, true);
+                workbook.Write(file, true);
             }
         }
     }

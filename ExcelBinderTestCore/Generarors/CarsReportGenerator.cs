@@ -18,19 +18,21 @@ namespace ExcelBinderTestCore.Generarors
             var carsArray = cars.ToArray();
 
             generator
-                .FromTemplate(templatePath, 0, 4, true)
-                .ReplaceShortCode("CarCount", carsArray.Length.ToString())
-                .ReplaceShortCode("Name", "Putin V.V.")
+                .UseTemplating(t => t
+                    .FromTemplate(templatePath, 4, true)
+                    .ReplaceShortCode("CarCount", carsArray.Length.ToString())
+                    .ReplaceShortCode("Name", "Putin V.V."))
                 .AddRule(c => c.Brand, 0)
                 .AddRule(c => c.Model, 1)
                 .AddRule(c => c.Year, 2)
                 .AddRule(c => c.HP, 3)
                 .AddRule(c => c.Crashed, 4)
                 .AddRule(c => c.Class, 5)
-                .AddStyle(CreateRedStyle, RedBGStyle)
-                .AddStyle(CreateTableStyle, TableStyle)
-                .AddDefaultRowsStyle(TableStyle)
-                .AddConditionRowStyle(car => car.Crashed ? RedBGStyle : null)
+                //.UseStyling(s => s
+                //    .AddStyle(CreateRedStyle, RedBGStyle)
+                //    .AddStyle(CreateTableStyle, TableStyle)
+                //    .AddRowDefaultStyle(TableStyle)
+                //    .AddConditionRowStyle(car => car.Crashed ? RedBGStyle : null))
                 .Generate(newFile, carsArray);
         }
 

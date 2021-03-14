@@ -9,7 +9,7 @@ namespace ExcelEnt.Write
     /// Excel styling
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class XLSXStyling<T>
+    public class XLSXStyling<T>
     {
         private Dictionary<string, ICellStyle>  _styles;
         private List<Func<T, string>>           _conditionStyles;
@@ -19,7 +19,7 @@ namespace ExcelEnt.Write
         private XSSFWorkbook                    _workbook;
         private ISheet                          _sheet;
 
-        internal XLSXStyling(XSSFWorkbook workbook, ISheet sheet)
+        public XLSXStyling(XSSFWorkbook workbook, ISheet sheet)
         {
             _workbook = workbook;
             _sheet = sheet;
@@ -32,7 +32,7 @@ namespace ExcelEnt.Write
         /// </summary>
         /// <param name="styling">Style definition</param>
         /// <param name="styleName">Style name</param>
-        internal void AddStyle(Action<ICellStyle> styling, string styleName)
+        public XLSXStyling<T> AddStyle(Action<ICellStyle> styling, string styleName)
         {
             var newStyle = _workbook.CreateCellStyle();
             styling(newStyle);
@@ -43,25 +43,31 @@ namespace ExcelEnt.Write
             }
 
             _styles.Add(styleName, newStyle);
+
+            return this;
         }
 
         /// <summary>
         /// Add row style by condition
         /// </summary>
         /// <param name="styleName"></param>
-        internal void AddConditionRowStyle(Func<T, string> styleName)
+        public XLSXStyling<T> AddConditionRowStyle(Func<T, string> styleName)
         {
             _conditionStyles.Add(styleName);
+
+            return this;
         }
 
         /// <summary>
         /// Add default rows styling
         /// </summary>
         /// <param name="styleName">Existing style name</param>
-        internal void AddRowDefaultStyle(string styleName)
+        public XLSXStyling<T> AddRowDefaultStyle(string styleName)
         {
             _rowsDefaultStyleName = styleName;
             _defaultStyle = _styles[styleName];
+
+            return this;
         } 
 
         /// <summary>
