@@ -19,6 +19,7 @@ namespace ExcelEnt.Write
         private XLSXStyling<T>                      _styling;
         private XLSXTemplating<T>                   _templating;
         private List<Action<XSSFWorkbook, ISheet>>  _modifications;
+        private string[]                            _columnsTitles;
 
         public XLSXWriter()
         {
@@ -26,6 +27,19 @@ namespace ExcelEnt.Write
             _templating = new XLSXTemplating<T>();
             _styling = new XLSXStyling<T>();
             _modifications = new List<Action<XSSFWorkbook, ISheet>>();
+        }
+
+        private int InsertIndex
+        {
+            get
+            {
+                if (_templating != null) 
+                    return _templating.InsertInd;
+                if (_columnsTitles != null & _columnsTitles.Length > 0) 
+                    return 1;
+
+                return 0;
+            }
         }
 
         /// <summary>
@@ -66,6 +80,13 @@ namespace ExcelEnt.Write
             return this;
         }
 
+        public XLSXWriter<T> AddColumnsTitles(string[] titles)
+        {
+            _columnsTitles = titles;
+
+            return this;
+        }
+
         /// <summary>
         /// Add modifications to final workbook
         /// </summary>
@@ -85,19 +106,39 @@ namespace ExcelEnt.Write
         /// <param name="entities"></param>
         public void Generate(string resultFilePath, T[] entities)
         {
-            var insertIndex = _templating?.InsertInd ?? 0;
-
-            var workbook = _templating?.CreateWorkbook(entities.Length) ?? new XSSFWorkbook();
+            var workbook = CreateWorkbook(entities.Length);
             var sheet = workbook.GetSheetAt(0);
 
             _styling?.Build(workbook);
-            WriteEntities(sheet, entities, insertIndex);
-            _styling?.ApplyConditionRowStyles(sheet, entities, insertIndex);
+            WriteEntities(sheet, entities, InsertIndex);
+            _styling?.ApplyConditionRowStyles(sheet, entities, InsertIndex);
             ApplyModifications(workbook, sheet);
 
             SaveExcel(workbook, resultFilePath);
         }
 
+        private XSSFWorkbook CreateWorkbook(int entitiesCount)
+        {
+            XSSFWorkbook workbook = null;
+            if (_columnsTitles != null && _columnsTitles.Length > 0)
+            {
+                workbook = new XSSFWorkbook();
+                var sheet = workbook.GetSheetAt(0);
+                var row = sheet.CreateRow(0);
+                for (int i = 0; i < _columnsTitles.Length; i++)
+                    row.CreateCell(i).SetCellValue(_columnsTitles[i]);
+            }
+            else if (_templating != null)
+            {
+                workbook = _templating.CreateWorkbook(entitiesCount);
+            }
+            else
+            {
+                workbook = new XSSFWorkbook();
+            }
+
+            return workbook;
+        }
 
         private void ApplyModifications(XSSFWorkbook workbook, ISheet sheet)
         {
