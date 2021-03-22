@@ -104,7 +104,7 @@ namespace ExcelEnt.Write
         /// </summary>
         /// <param name="resultFilePath"></param>
         /// <param name="entities"></param>
-        public void Generate(string resultFilePath, T[] entities)
+        public XSSFWorkbook Generate(T[] entities)
         {
             var workbook = CreateWorkbook(entities.Length);
             var sheet = workbook.GetSheetAt(0);
@@ -114,7 +114,7 @@ namespace ExcelEnt.Write
             _styling?.ApplyConditionRowStyles(sheet, entities, InsertIndex);
             ApplyModifications(workbook, sheet);
 
-            SaveExcel(workbook, resultFilePath);
+            return workbook;
         }
 
         private XSSFWorkbook CreateWorkbook(int entitiesCount)
@@ -188,14 +188,6 @@ namespace ExcelEnt.Write
             _styling?.SetStyle(newCell);
 
             return newCell;
-        }
-
-        private void SaveExcel(XSSFWorkbook workbook, string resultFilePath)
-        {
-            using (var file = new FileStream(resultFilePath, FileMode.CreateNew))
-            {
-                workbook.Write(file, true);
-            }
         }
     }
 }

@@ -36,7 +36,8 @@ namespace ExcelBinderTestCore.Generarors
                     .AddCellStyle(0, blueBGStyle)
                     .AddCellsDefaultStyle(tableStyle)
                     .AddConditionRowStyle((car, i) => car.Crashed ? redBGStyle : null))
-                .Generate(newFile, carsArray);
+                .Generate(carsArray)
+                .SaveTo(newFile);
         }
 
         private void CreateRedStyle(ICellStyle style)
