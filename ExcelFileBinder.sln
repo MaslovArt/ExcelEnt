@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelBinderTestCore", "Exce
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelEnt", "ExcelEnt\ExcelEnt.csproj", "{95D21E99-FAAC-4AFF-AB4F-41CBE114ACB9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelEnt.Tests", "ExcelEnt.Tests\ExcelEnt.Tests.csproj", "{BE881F21-795E-4266-B85A-77E4D086541B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{95D21E99-FAAC-4AFF-AB4F-41CBE114ACB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95D21E99-FAAC-4AFF-AB4F-41CBE114ACB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95D21E99-FAAC-4AFF-AB4F-41CBE114ACB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE881F21-795E-4266-B85A-77E4D086541B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE881F21-795E-4266-B85A-77E4D086541B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE881F21-795E-4266-B85A-77E4D086541B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE881F21-795E-4266-B85A-77E4D086541B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
