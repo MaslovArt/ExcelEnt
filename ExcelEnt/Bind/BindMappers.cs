@@ -14,8 +14,13 @@ namespace ExcelEnt.Bind
         /// </summary>
         /// <param name="cell">Excell cell</param>
         /// <returns></returns>
-        public static object Int(ICell cell) => 
-            (int)cell.NumericCellValue;
+        public static object Int(ICell cell)
+        {
+            if (cell.CellType == CellType.Numeric)
+                return (int)cell.NumericCellValue;
+
+            return int.Parse(cell.ToString());
+        }
 
         /// <summary>
         /// Get nullable int value
@@ -23,15 +28,20 @@ namespace ExcelEnt.Bind
         /// <param name="cell">Excell cell</param>
         /// <returns></returns>
         public static object NullInt(ICell cell) =>
-            cell == null ? null : (int?)cell.NumericCellValue;
+            string.IsNullOrEmpty(cell.ToString()) ? null : Int(cell);
 
         /// <summary>
         /// Get double value
         /// </summary>
         /// <param name="cell">Excell cell</param>
         /// <returns></returns>
-        public static object Double(ICell cell) => 
-            cell.NumericCellValue;
+        public static object Double(ICell cell)
+        {
+            if (cell.CellType == CellType.Numeric)
+                return cell.NumericCellValue;
+
+            return double.Parse(cell.ToString());
+        }
 
         /// <summary>
         /// Get nullable double value
@@ -39,7 +49,7 @@ namespace ExcelEnt.Bind
         /// <param name="cell">Excell cell</param>
         /// <returns></returns>
         public static object NullDouble(ICell cell) =>
-            cell == null ? null : (double?)cell.NumericCellValue;
+            string.IsNullOrEmpty(cell.ToString()) ? null : Double(cell);
 
         /// <summary>
         /// Get string value
@@ -63,7 +73,7 @@ namespace ExcelEnt.Bind
         /// <param name="cell">Excell cell</param>
         /// <returns></returns>
         public static object NullDate(ICell cell) =>
-            cell == null ? null : (DateTime?)cell.DateCellValue;
+            string.IsNullOrEmpty(cell.ToString()) ? null : (DateTime?)cell.DateCellValue;
 
         /// <summary>
         /// Get bool value
@@ -79,7 +89,7 @@ namespace ExcelEnt.Bind
         /// <param name="cell">Excell cell</param>
         /// <returns></returns>
         public static object NullBool(ICell cell) =>
-            cell == null ? null : (bool?)cell.BooleanCellValue;
+            string.IsNullOrEmpty(cell.ToString()) ? null : (bool?)cell.BooleanCellValue;
 
         /// <summary>
         /// Get bool value by true string value
@@ -104,6 +114,6 @@ namespace ExcelEnt.Bind
         /// <param name="cell">Excell cell</param>
         /// <returns></returns>
         public static object NullEnum<Enum>(ICell cell) where Enum : struct =>
-            cell == null ? null : (Enum?)cell.ToString().ToEnum<Enum>();
+            string.IsNullOrEmpty(cell.ToString()) ? null : (Enum?)cell.ToString().ToEnum<Enum>();
     }
 }

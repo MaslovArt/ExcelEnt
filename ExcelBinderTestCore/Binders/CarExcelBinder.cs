@@ -14,7 +14,7 @@ namespace ExcelBinderTestCore.Readers
                 .AddRule(3, m => m.HP, BindMappers.NullInt)
                 .AddRule(4, m => m.Crashed, (cell) => BindMappers.StringBool(cell, "Yes"))
                 .AddRule(5, m => m.Class, BindMappers.Enum<CarClass>)
-                .StartFrom(1)
+                .Skip(1)
                 .Bind(filePath, pageInd);
 
             return excelCars;

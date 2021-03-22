@@ -16,28 +16,32 @@ namespace ExcelEnt.Bind
     public class XLSXBinder<T> where T : new()
     {
         private List<BindRule> Rules = new List<BindRule>();
-        private int? StartIndex { get; set; }
-        private int? EndIndex { get; set; }
+        private int? SkipCount { get; set; }
+        private int? TakeCount { get; set; }
 
         /// <summary>
         /// Add starting read index
         /// </summary>
-        /// <param name="ind">Start index</param>
+        /// <param name="count">Start index</param>
         /// <returns></returns>
-        public XLSXBinder<T> StartFrom(int ind)
+        public XLSXBinder<T> Skip(int count)
         {
-            StartIndex = ind;
+            CheckCount(count, 0);
+            SkipCount = count;
+
             return this;
         }
 
         /// <summary>
         /// Add ending read index
         /// </summary>
-        /// <param name="ind">End index</param>
+        /// <param name="count">End index</param>
         /// <returns></returns>
-        public XLSXBinder<T> EndOn(int ind)
+        public XLSXBinder<T> Take(int count)
         {
-            EndIndex = ind;
+            CheckCount(count, 1);
+            TakeCount = count;
+
             return this;
         }
 
@@ -65,6 +69,7 @@ namespace ExcelEnt.Bind
         public T[] Bind(string filePath, int pageInd)
         {
             var file = new FileInfo(filePath);
+
             return Bind(file, pageInd);
         }
 
@@ -81,12 +86,12 @@ namespace ExcelEnt.Bind
             var excelPackage = new XSSFWorkbook(file);
             var itemSheet = excelPackage.GetSheetAt(pageInd);
 
-            var fromRow = StartIndex ?? 0;
-            var toRow = EndIndex ?? itemSheet.LastRowNum;
+            var fromRow = SkipCount ?? 0;
+            var toRow = SkipCount + TakeCount ?? itemSheet.LastRowNum + 1;
 
             var models = new List<T>();
 
-            for (int rowInd = fromRow; rowInd <= toRow; rowInd++)
+            for (int rowInd = fromRow; rowInd < toRow; rowInd++)
             {
                 var newModel = new T();
                 foreach (var rule in Rules)
@@ -108,6 +113,12 @@ namespace ExcelEnt.Bind
             }
 
             return models.ToArray();
+        }
+
+        private void CheckCount(int count, int min)
+        {
+            if (count < min)
+                throw new ArgumentException($"Count less then ${min}. (${count})");
         }
 
         private void CheckFile(FileInfo file)
