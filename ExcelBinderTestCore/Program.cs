@@ -10,15 +10,12 @@ namespace ExcelBinderTestCore
     {
         static void Main(string[] args)
         {
-            var carsFile = @"Documents\Cars.xlsx";
-            var carsReportFile = "reportCarsResult.xlsx";
-
             var carsBinder = new CarExcelBinder();
-            var excelCars = carsBinder.Bind(carsFile, 0);
+            var excelCars = carsBinder.Bind(@"Documents\Cars.xlsx", 0);
+
             Print(excelCars);
 
-            var carsReportGenerator = new CarsReportGenerator();
-            carsReportGenerator.Generate(carsReportFile, excelCars);
+            new CarsReportGenerator().Generate("cars_report.xlsx", excelCars);
         }
 
         static void Print(IEnumerable<Car> cars)

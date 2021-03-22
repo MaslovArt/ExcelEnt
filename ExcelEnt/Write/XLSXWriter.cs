@@ -24,8 +24,6 @@ namespace ExcelEnt.Write
         public XLSXWriter()
         {
             _rules = new List<WriteRule>();
-            _templating = new XLSXTemplating<T>();
-            _styling = new XLSXStyling<T>();
             _modifications = new List<Action<XSSFWorkbook, ISheet>>();
         }
 
@@ -35,7 +33,7 @@ namespace ExcelEnt.Write
             {
                 if (_templating != null) 
                     return _templating.InsertInd;
-                if (_columnsTitles != null & _columnsTitles.Length > 0) 
+                if (_columnsTitles != null && _columnsTitles.Length > 0) 
                     return 1;
 
                 return 0;
@@ -63,6 +61,7 @@ namespace ExcelEnt.Write
         /// <returns></returns>
         public XLSXWriter<T> UseTemplating(Action<IXLSXTemplating<T>> config)
         {
+            _templating = new XLSXTemplating<T>();
             config(_templating);
 
             return this;
@@ -75,6 +74,7 @@ namespace ExcelEnt.Write
         /// <returns></returns>
         public XLSXWriter<T> UseStyling(Action<IXLSXStyling<T>> config)
         {
+            _styling = new XLSXStyling<T>();
             config(_styling);
 
             return this;
@@ -123,7 +123,7 @@ namespace ExcelEnt.Write
             if (_columnsTitles != null && _columnsTitles.Length > 0)
             {
                 workbook = new XSSFWorkbook();
-                var sheet = workbook.GetSheetAt(0);
+                var sheet = workbook.CreateSheet();
                 var row = sheet.CreateRow(0);
                 for (int i = 0; i < _columnsTitles.Length; i++)
                     row.CreateCell(i).SetCellValue(_columnsTitles[i]);
@@ -135,6 +135,7 @@ namespace ExcelEnt.Write
             else
             {
                 workbook = new XSSFWorkbook();
+                workbook.CreateSheet();
             }
 
             return workbook;
