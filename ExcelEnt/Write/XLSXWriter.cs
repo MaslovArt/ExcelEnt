@@ -80,7 +80,7 @@ namespace ExcelEnt.Write
             return this;
         }
 
-        public XLSXWriter<T> AddColumnsTitles(string[] titles)
+        public XLSXWriter<T> AddColumnsTitles(params string[] titles)
         {
             _columnsTitles = titles;
 

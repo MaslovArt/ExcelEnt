@@ -1,14 +1,15 @@
 ﻿using ExcelEnt.Tests.Models;
 using ExcelEnt.Write;
+using NPOI.XSSF.UserModel;
 
 namespace ExcelEnt.Tests.Generators
 {
     public class ListGenerator
     {
-        public void Generate(string filePath, TestItem[] items)
+        public XSSFWorkbook Generate(TestItem[] items)
         {
             var generator = new XLSXWriter<TestItem>();
-            generator
+            return generator
                 .AddRule(e => e.Int, 0)
                 .AddRule(e => e.NullInt, 1)
                 .AddRule(e => e.Double, 2)
@@ -19,7 +20,7 @@ namespace ExcelEnt.Tests.Generators
                 .AddRule(e => e.NullBool, 7)
                 .AddRule(e => e.String, 8)
                 .AddRule(e => e.Enum, 9)
-                .Generate(filePath, items);
+                .Generate(items);
         }
     }
 }

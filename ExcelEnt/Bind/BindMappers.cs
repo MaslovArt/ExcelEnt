@@ -28,7 +28,9 @@ namespace ExcelEnt.Bind
         /// <param name="cell">Excell cell</param>
         /// <returns></returns>
         public static object NullInt(ICell cell) =>
-            string.IsNullOrEmpty(cell.ToString()) ? null : Int(cell);
+            cell == null || string.IsNullOrEmpty(cell.ToString()) 
+                ? null 
+                : Int(cell);
 
         /// <summary>
         /// Get double value
@@ -49,7 +51,9 @@ namespace ExcelEnt.Bind
         /// <param name="cell">Excell cell</param>
         /// <returns></returns>
         public static object NullDouble(ICell cell) =>
-            string.IsNullOrEmpty(cell.ToString()) ? null : Double(cell);
+            cell == null || string.IsNullOrEmpty(cell.ToString()) 
+                ? null 
+                : Double(cell);
 
         /// <summary>
         /// Get string value
@@ -73,7 +77,9 @@ namespace ExcelEnt.Bind
         /// <param name="cell">Excell cell</param>
         /// <returns></returns>
         public static object NullDate(ICell cell) =>
-            string.IsNullOrEmpty(cell.ToString()) ? null : (DateTime?)cell.DateCellValue;
+            cell == null || string.IsNullOrEmpty(cell.ToString()) 
+                ? null 
+                : (DateTime?)cell.DateCellValue;
 
         /// <summary>
         /// Get bool value
@@ -89,7 +95,9 @@ namespace ExcelEnt.Bind
         /// <param name="cell">Excell cell</param>
         /// <returns></returns>
         public static object NullBool(ICell cell) =>
-            string.IsNullOrEmpty(cell.ToString()) ? null : (bool?)cell.BooleanCellValue;
+            string.IsNullOrEmpty(cell.ToString()) 
+                ? null 
+                : (bool?)cell.BooleanCellValue;
 
         /// <summary>
         /// Get bool value by true string value
@@ -114,6 +122,8 @@ namespace ExcelEnt.Bind
         /// <param name="cell">Excell cell</param>
         /// <returns></returns>
         public static object NullEnum<Enum>(ICell cell) where Enum : struct =>
-            string.IsNullOrEmpty(cell.ToString()) ? null : (Enum?)cell.ToString().ToEnum<Enum>();
+            cell == null || string.IsNullOrEmpty(cell.ToString()) 
+                ? null 
+                : (Enum?)cell.ToString().ToEnum<Enum>();
     }
 }

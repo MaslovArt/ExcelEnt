@@ -7,10 +7,26 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="ExcelTemplates\testTemplate.xlsx" />
+    <None Remove="ExpectedData\expectedList.xlsx" />
+    <None Remove="ExpectedData\expectedTemplateList.xlsx" />
+    <None Remove="ExpectedData\expectedTitleList.xlsx" />
     <None Remove="ExpectedData\testItems.xlsx" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="ExcelTemplates\testTemplate.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ExpectedData\expectedList.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ExpectedData\expectedTemplateList.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ExpectedData\expectedTitleList.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="ExpectedData\testItems.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
