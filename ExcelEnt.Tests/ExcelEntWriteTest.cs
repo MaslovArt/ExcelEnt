@@ -3,10 +3,6 @@ using ExcelEnt.Tests.Generators;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using ExcelEnt.Write;
 
 namespace ExcelEnt.Tests
 {
@@ -16,8 +12,7 @@ namespace ExcelEnt.Tests
         [TestMethod]
         public void ListWriteTest()
         {
-            var expectedExcelPath = @"ExpectedData\expectedList.xlsx";
-            var expectedWb = new XSSFWorkbook(expectedExcelPath);
+            var expectedWb = new XSSFWorkbook(Expected.ListPath);
 
             var listGenerator = new ListGenerator();
             var generatedWb = listGenerator.Generate(Expected.Data);
@@ -28,8 +23,7 @@ namespace ExcelEnt.Tests
         [TestMethod]
         public void TitleListWriteTest()
         {
-            var expectedExcelPath = @"ExpectedData\expectedTitleList.xlsx";
-            var expectedWb = new XSSFWorkbook(expectedExcelPath);
+            var expectedWb = new XSSFWorkbook(Expected.TitleListPath);
 
             var listGenerator = new TitleListGenerator();
             var generatedWb = listGenerator.Generate(Expected.Data);
@@ -40,12 +34,10 @@ namespace ExcelEnt.Tests
         [TestMethod]
         public void TemplateWriteTest()
         {
-            var templatePath = @"ExcelTemplates\testTemplate.xlsx";
-            var expectedExcelPath = @"ExpectedData\expectedTemplateList.xlsx";
-            var expectedWb = new XSSFWorkbook(expectedExcelPath);
+            var expectedWb = new XSSFWorkbook(Expected.TemplateListPath);
 
             var listGenerator = new TemplateGenerator();
-            var generatedWb = listGenerator.Generate(templatePath, Expected.Data);
+            var generatedWb = listGenerator.Generate(Expected.GenTemplatePath, Expected.Data);
 
             AssertWorkbookEquals(expectedWb, generatedWb);
         }

@@ -5,6 +5,34 @@ namespace ExcelEnt.Tests.ExpectedData
 {
     public static class Expected
     {
+        /// <summary>
+        /// Test excel file for binding tests
+        /// </summary>
+        public static string TestItemsPath => @"ExpectedData\testItems.xlsx";
+
+        /// <summary>
+        /// Expected list excel file path
+        /// </summary>
+        public static string ListPath => @"ExpectedData\expectedList.xlsx";
+
+        /// <summary>
+        /// Expected title list excel file path
+        /// </summary>
+        public static string TitleListPath => @"ExpectedData\expectedTitleList.xlsx";
+
+        /// <summary>
+        /// Expected template excel file path
+        /// </summary>
+        public static string TemplateListPath => @"ExpectedData\expectedTemplateList.xlsx";
+
+        /// <summary>
+        /// Test template excel path for generation
+        /// </summary>
+        public static string GenTemplatePath => @"ExcelTemplates\testTemplate.xlsx";
+
+        /// <summary>
+        /// Expected testItems data
+        /// </summary>
         public static TestItem[] Data => new TestItem[]
         {
             new TestItem()

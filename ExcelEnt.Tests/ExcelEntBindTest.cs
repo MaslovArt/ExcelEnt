@@ -8,8 +8,6 @@ namespace ExcelEnt.Tests
     [TestClass]
     public class ExcelEntBindTest
     {
-        private string excelTestFilePath = @"ExpectedData\testItems.xlsx";
-
         /// <summary>
         /// Test binding all rows from file
         /// </summary>
@@ -17,7 +15,7 @@ namespace ExcelEnt.Tests
         public void TestFullBind()
         {
             var binder = new FullBinder();
-            var entities = binder.Bind(excelTestFilePath);
+            var entities = binder.Bind(Expected.TestItemsPath);
             var expected = Expected.Data;
 
             CollectionAssert.AreEqual(entities, expected);
@@ -33,7 +31,7 @@ namespace ExcelEnt.Tests
             var takeRows = 2;
 
             var binder = new PartBinder();
-            var entities = binder.Bind(excelTestFilePath, skipRows, takeRows);
+            var entities = binder.Bind(Expected.TestItemsPath, skipRows, takeRows);
             var expected = Expected.Data.Skip(skipRows).Take(takeRows).ToArray();
 
             CollectionAssert.AreEqual(entities, expected);
