@@ -7,7 +7,7 @@ namespace ExcelEnt.Tests.Binders
     {
         public TestItem[] Bind(string filePath)
         {
-            var excelCars = new XLSXBinder<TestItem>()
+            var items = new XLSXBinder<TestItem>()
                 .AddRule(0, e => e.Int, BindMappers.Int)
                 .AddRule(1, e => e.NullInt, BindMappers.NullInt)
                 .AddRule(2, e => e.Double, BindMappers.Double)
@@ -20,7 +20,7 @@ namespace ExcelEnt.Tests.Binders
                 .AddRule(9, e => e.Enum, BindMappers.Enum<TestEnum>)
                 .Bind(filePath, 0);
 
-            return excelCars;
+            return items;
         }
     }
 }

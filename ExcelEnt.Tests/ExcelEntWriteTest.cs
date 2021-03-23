@@ -32,6 +32,17 @@ namespace ExcelEnt.Tests
         }
 
         [TestMethod]
+        public void OffsetTitleListWriteTest()
+        {
+            var expectedWb = new XSSFWorkbook(Expected.TitleListOffset3Path);
+
+            var listGenerator = new TitleListGenerator();
+            var generatedWb = listGenerator.Generate(Expected.Data, 3);
+
+            AssertWorkbookEquals(expectedWb, generatedWb);
+        }
+
+        [TestMethod]
         public void TemplateWriteTest()
         {
             var expectedWb = new XSSFWorkbook(Expected.TemplateListPath);

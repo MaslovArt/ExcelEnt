@@ -56,7 +56,7 @@ namespace ExcelEnt.Write
         /// </summary>
         /// <param name="styleName">Style name</param>
         /// <returns></returns>
-        public IXLSXStyling<T> AddCellsDefaultStyle(string styleName)
+        public IXLSXStyling<T> AddCellsStyle(string styleName)
         {
             _cellDefaultStyleName = styleName;
 
@@ -64,12 +64,12 @@ namespace ExcelEnt.Write
         }
 
         /// <summary>
-        /// Add style for column
+        /// Add style for column cells
         /// </summary>
         /// <param name="columnIndex">Column index</param>
         /// <param name="styleName">Style name</param>
         /// <returns></returns>
-        public IXLSXStyling<T> AddCellStyle(int columnIndex, string styleName)
+        public IXLSXStyling<T> AddCellsStyle(string styleName, int columnIndex)
         {
             _cellsStyles.Add(columnIndex, styleName);
 

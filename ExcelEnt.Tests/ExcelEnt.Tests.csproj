@@ -11,6 +11,7 @@
     <None Remove="ExpectedData\expectedList.xlsx" />
     <None Remove="ExpectedData\expectedTemplateList.xlsx" />
     <None Remove="ExpectedData\expectedTitleList.xlsx" />
+    <None Remove="ExpectedData\expectedTitleList_offset3.xlsx" />
     <None Remove="ExpectedData\testItems.xlsx" />
   </ItemGroup>
 
@@ -22,6 +23,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="ExpectedData\expectedTemplateList.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ExpectedData\expectedTitleList_offset3.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="ExpectedData\expectedTitleList.xlsx">

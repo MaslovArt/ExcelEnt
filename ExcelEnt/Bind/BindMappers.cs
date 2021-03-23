@@ -115,15 +115,5 @@ namespace ExcelEnt.Bind
         /// <returns></returns>
         public static object Enum<Enum>(ICell cell) => 
             cell.ToString().ToEnum<Enum>();
-
-        /// <summary>
-        /// Get nullable enum value
-        /// </summary>
-        /// <param name="cell">Excell cell</param>
-        /// <returns></returns>
-        public static object NullEnum<Enum>(ICell cell) where Enum : struct =>
-            cell == null || string.IsNullOrEmpty(cell.ToString()) 
-                ? null 
-                : (Enum?)cell.ToString().ToEnum<Enum>();
     }
 }

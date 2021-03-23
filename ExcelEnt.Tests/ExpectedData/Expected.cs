@@ -21,6 +21,11 @@ namespace ExcelEnt.Tests.ExpectedData
         public static string TitleListPath => @"ExpectedData\expectedTitleList.xlsx";
 
         /// <summary>
+        /// Expected title list excel file path
+        /// </summary>
+        public static string TitleListOffset3Path => @"ExpectedData\expectedTitleList_offset3.xlsx";
+
+        /// <summary>
         /// Expected template excel file path
         /// </summary>
         public static string TemplateListPath => @"ExpectedData\expectedTemplateList.xlsx";

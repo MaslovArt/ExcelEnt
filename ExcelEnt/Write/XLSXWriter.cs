@@ -3,7 +3,6 @@ using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -61,7 +60,7 @@ namespace ExcelEnt.Write
         /// <returns></returns>
         public XLSXWriter<T> UseTemplating(Action<IXLSXTemplating<T>> config)
         {
-            _templating = new XLSXTemplating<T>();
+            _templating = _templating ?? new XLSXTemplating<T>();
             config(_templating);
 
             return this;
@@ -74,7 +73,7 @@ namespace ExcelEnt.Write
         /// <returns></returns>
         public XLSXWriter<T> UseStyling(Action<IXLSXStyling<T>> config)
         {
-            _styling = new XLSXStyling<T>();
+            _styling = _styling ?? new XLSXStyling<T>();
             config(_styling);
 
             return this;
@@ -125,8 +124,10 @@ namespace ExcelEnt.Write
                 workbook = new XSSFWorkbook();
                 var sheet = workbook.CreateSheet();
                 var row = sheet.CreateRow(0);
+                var startColInd = _rules.Select(r => r.ExcelColInd).Min();
+
                 for (int i = 0; i < _columnsTitles.Length; i++)
-                    row.CreateCell(i).SetCellValue(_columnsTitles[i]);
+                    row.CreateCell(startColInd + i).SetCellValue(_columnsTitles[i]);
             }
             else if (_templating != null)
             {
