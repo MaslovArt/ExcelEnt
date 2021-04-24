@@ -18,7 +18,7 @@ namespace ExcelEnt.Extentions
             return null;
         }
 
-        internal static PropertyInfo GetProperty<T>(Expression<Func<T, object>> property)
+        internal static PropertyInfo GetProperty<T, P>(Expression<Func<T, P>> property)
         {
             LambdaExpression lambda = (LambdaExpression)property;
             MemberExpression memberExpression;

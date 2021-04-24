@@ -52,10 +52,10 @@ namespace ExcelEnt.Bind
         /// <param name="propName">Entity property name</param>
         /// <param name="map">Cell value to property mapper</param>
         /// <returns></returns>
-        public XLSXBinder<T> AddRule(int colIndex, Expression<Func<T, object>> propName, Func<ICell, object> map)
+        public XLSXBinder<T> AddRule<P>(int colIndex, Expression<Func<T, P>> propName, Func<ICell, P> map)
         {
             var prop = TypeExtentions.GetProperty(propName);
-            Rules.Add(new BindRule(colIndex, prop, map));
+            Rules.Add(new BindRule(colIndex, prop, (c) => map(c)));
 
             return this;
         } 
